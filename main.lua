@@ -3999,13 +3999,7 @@ UIS.InputBegan:Connect(function(input, gpe)
         if isOpen then closePanel() else openPanel() end
         playToggleSound()
     end
-end)-- =========================================================
--- SECTION 7/15 : KOMPONEN + TAB UI PART 1
--- =========================================================
-
--- =========================================================
--- KOMPONEN UI (2 KOLOM SUPPORT)
--- =========================================================
+end)-- SECTION 7/15 : KOMPONEN + TAB SURVIVOR/KILLER
 
 function sec(title, icon, parent)
     parent = parent or cs
@@ -4358,9 +4352,6 @@ function drp(name, options, def, cb, parent)
     end
 end
 
--- =========================================================
--- TAB SYSTEM (2 KOLOM: LEFT + RIGHT)
--- =========================================================
 activeTab = nil
 
 function makeTab(name, icon, order, leftCb, rightCb)
@@ -4428,7 +4419,6 @@ function makeTab(name, icon, order, leftCb, rightCb)
     end)
 end
 
--- Alias global
 _G.Roooor_sec = sec
 _G.Roooor_lbl = lbl
 _G.Roooor_tog = tog
@@ -4438,9 +4428,6 @@ _G.Roooor_btn = btn
 _G.Roooor_drp = drp
 _G.Roooor_makeTab = makeTab
 
--- =========================================================
--- TAB 1: SURVIVOR
--- =========================================================
 makeTab("Survivor", "🏃", 1, function()
     sec("Auto Parry", "🛡️")
     tog("Enable Auto Parry", false, function(s)
@@ -4453,7 +4440,6 @@ makeTab("Survivor", "🏃", 1, function()
             end
         end
     end)
-    lbl("Hybrid + Predictive + Double Tap", C.FIRE_BRIGHT)
     sl("Parry Radius", 5, 40, 20, function(v)
         AutoParry.ParryDistance = v
         AP_Config.Radius = v
@@ -4473,7 +4459,7 @@ makeTab("Survivor", "🏃", 1, function()
         AP_parryCount = 0
     end)
 
-    sec("Aimbot Senter (HOLD = LOCK)", "🔦")
+    sec("Aimbot Senter", "🔦")
     tog("Enable Aimbot Senter", false, function(s)
         AimbotSenter.Enabled = s
         if s then
@@ -4483,8 +4469,6 @@ makeTab("Survivor", "🏃", 1, function()
             AimbotSenter.CurrentTarget = nil
         end
     end)
-    lbl("HOLD tombol senter = INSTANT LOCK ke Head Killer", C.FIRE_BRIGHT)
-    lbl("LEPAS tombol = kamera bebas", C.GRN)
     drp("Lock Part", {"Head", "HumanoidRootPart", "UpperTorso"}, "Head", function(v)
         AimbotSenter.LockPart = v
     end)
@@ -4495,7 +4479,7 @@ makeTab("Survivor", "🏃", 1, function()
         AimbotSenter.LaserColor = c
     end)
 
-    sec("Auto Skill Check (2 MODE)", "⚡")
+    sec("Auto Skill Check", "⚡")
     tog("Enable Auto Skill Check", false, function(s)
         SkillCheck.Enabled = s
         if s then startSkillCheck() end
@@ -4503,8 +4487,7 @@ makeTab("Survivor", "🏃", 1, function()
     drp("Mode", {"Perfect", "Instant"}, "Perfect", function(v)
         SkillCheck.Mode = v
     end)
-    lbl("Perfect = Fallens Style (102-116°)", C.FIRE_BRIGHT)
-    tog("Hide Needle (Instant only)", false, function(s)
+    tog("Hide Needle", false, function(s)
         SkillCheck.HideNeedle = s
     end)
     btn("Reset Counter", function()
@@ -4512,7 +4495,7 @@ makeTab("Survivor", "🏃", 1, function()
         SkillCheck.Total = 0
     end)
 
-    sec("Auto Wiggle (Anti Gendong)", "🔓")
+    sec("Auto Wiggle", "🔓")
     tog("Enable Auto Wiggle", false, function(s)
         AutoParry.Wiggle = s
     end)
@@ -4520,11 +4503,10 @@ makeTab("Survivor", "🏃", 1, function()
         AutoParry.WiggleSpam = v
     end)
 
-    sec("Auto Flee Killer", "🏃‍♂️")
+    sec("Auto Flee", "🏃‍♂️")
     tog("Enable Auto Flee", false, function(s)
         AutoFlee.Enabled = s
     end)
-    lbl("TP ke generator terjauh kalau killer deket", C.FIRE_BRIGHT)
     sl("Detect Distance", 10, 150, 50, function(v)
         AutoFlee.DetectDistance = v
     end)
@@ -4541,14 +4523,14 @@ makeTab("Survivor", "🏃", 1, function()
         FastVault.Speed = v
     end)
 
-    sec("Auto Escape Gate", "🚪")
+    sec("Auto Escape", "🚪")
     tog("Enable Auto Escape", false, function(s)
         S.AutoEscapeGate = s
     end)
-    tog("Trigger: Killer Deket", true, function(s)
+    tog("Killer Deket", true, function(s)
         S.AutoEscapeUseKillerCheck = s
     end)
-    tog("Trigger: Generator Cukup", true, function(s)
+    tog("Generator Cukup", true, function(s)
         S.AutoEscapeUseGenCheck = s
     end)
     sl("Killer Range", 10, 150, 50, function(v)
@@ -4556,7 +4538,7 @@ makeTab("Survivor", "🏃", 1, function()
     end)
 
     sec("God Mode", "🛡️")
-    tog("God Mode (Full)", false, function(s)
+    tog("God Mode", false, function(s)
         GodMode.Enabled = s
     end)
 
@@ -4564,14 +4546,11 @@ makeTab("Survivor", "🏃", 1, function()
     tog("Instant Interact", false, function(s) S.InstantInteract = s end)
 
     sec("Teleport", "🌀")
-    btn("TP ke Finish Line", function()
+    btn("TP Finish Line", function()
         teleportToFinishLine()
     end)
 end, nil)
 
--- =========================================================
--- TAB 2: KILLER
--- =========================================================
 makeTab("Killer", "🔪", 2, function()
     sec("Auto Attack", "⚔️")
     tog("Killer Auto Attack", false, function(s) S.Killer_AutoAtk = s end)
@@ -4581,7 +4560,7 @@ makeTab("Killer", "🔪", 2, function()
     tog("Killer Kill All", false, function(s) S.Killer_KillAll = s end)
 
     sec("Auto Carry + Hook", "🎒")
-    tog("Auto Carry (Downed)", false, function(s) S.AutoCarry = s end)
+    tog("Auto Carry", false, function(s) S.AutoCarry = s end)
     tog("Auto Hook", false, function(s) S.AutoHook = s end)
     sl("Carry Range", 10, 200, 60, function(v) S.CarryRange = v end)
 end, function()
@@ -4611,15 +4590,8 @@ end, function()
     sl("Stalk Range", 10, 300, 150, function(v)
         S.StalkRange = v
     end, rightScroll)
-end)
+end)-- SECTION 8/15 : TAB ESP/FIRE/MOONWALK/MISC/VISUAL/HITBOX/GRAFIK ULTRA
 
-print("✅ [7/15] ONE W - Komponen + Tab Survivor/Killer Loaded")-- =========================================================
--- SECTION 8/15 : TAB UI PART 2 (ESP, FIRE, MOONWALK, MISC, VISUAL, HITBOX, GRAFIK ULTRA)
--- =========================================================
-
--- =========================================================
--- TAB 3: ESP
--- =========================================================
 makeTab("ESP", "👁️", 3, function()
     sec("Player ESP", "🟢")
     tog("ESP Survivor", true, function(s) ESP.Survivor = s end)
@@ -4670,9 +4642,6 @@ end, function()
     end, rightScroll)
 end)
 
--- =========================================================
--- TAB 4: FIRE
--- =========================================================
 makeTab("Fire", "🔥", 4, function()
     sec("Fire Control", "⚙️")
     tog("Enable Fire", false, function(s)
@@ -4693,7 +4662,7 @@ makeTab("Fire", "🔥", 4, function()
         S.FireBeamColor = c
     end)
 end, function()
-    sec("Pilih Efek Fire (60)", "🔥", rightScroll)
+    sec("Fire Effect", "🔥", rightScroll)
     for i, fireName in ipairs(FireList) do
         local btn2 = Instance.new("TextButton")
         btn2.Size = UDim2.new(1, -4, 0, 24)
@@ -4743,12 +4712,8 @@ end, function()
     end
 end)
 
--- =========================================================
--- TAB 5: MOONWALK
--- =========================================================
 makeTab("Moonwalk", "🕺", 5, function()
-    sec("Moonwalk (TOMBOL MW ONLY)", "🕺")
-    lbl("Cukup tombol MW di pojok layar", C.FIRE_BRIGHT)
+    sec("Moonwalk", "🕺")
     tog("Enable Moonwalk", false, function(s)
         if setMoonwalk then setMoonwalk(s) else Moonwalk.Enabled = s end
         if _G.Roooor_mwBtnUpdateUI then pcall(_G.Roooor_mwBtnUpdateUI) end
@@ -4773,9 +4738,6 @@ end, function()
     tog("Use Slow Speed", true, function(s) Moonwalk.UseSlow = s end, rightScroll)
 end)
 
--- =========================================================
--- TAB 6: MISC
--- =========================================================
 makeTab("Misc", "⚙️", 6, function()
     sec("Movement", "🏃")
     tog("Walk Speed", false, function(s) S.WalkSpeed = s end)
@@ -4802,7 +4764,7 @@ makeTab("Misc", "⚙️", 6, function()
         applyHeadless(s)
     end)
 
-    sec("Misc Utility", "🛠️")
+    sec("Utility", "🛠️")
     tog("Anti-AFK", false, function(s)
         S.AntiAFK = s
         applyAntiAFK(s)
@@ -4820,9 +4782,6 @@ end, function()
     btn("Rejoin Server", function() rejoinServer() end, rightScroll)
 end)
 
--- =========================================================
--- TAB 7: VISUAL
--- =========================================================
 makeTab("Visual", "✨", 7, function()
     sec("Fullbright & No Fog", "💡")
     tog("Fullbright", false, function(s)
@@ -4886,7 +4845,7 @@ makeTab("Visual", "✨", 7, function()
         if S.Korblox then applyKorblox(true, "Pencil", S.KorbloxYOffset, v) end
     end)
 end, function()
-    sec("Sky Preset (18)", "🌌", rightScroll)
+    sec("Sky Preset", "🌌", rightScroll)
     drp("Sky", SkyList, "Default", function(v)
         S.SkyId = v
         applySky(v)
@@ -4951,7 +4910,7 @@ end, function()
     end, rightScroll)
 
     sec("Danger Zone", "⚠️", rightScroll)
-    btn("UNLOAD ONE W HUB", function()
+    btn("UNLOAD", function()
         pcall(function()
             if gui then gui:Destroy() end
             if killFeedGui then killFeedGui:Destroy() end
@@ -4969,9 +4928,6 @@ end, function()
     end, rightScroll)
 end)
 
--- =========================================================
--- TAB 8: HITBOX
--- =========================================================
 makeTab("Hitbox", "📦", 8, function()
     sec("Hitbox Control", "📦")
     tog("Enable Hitbox", false, function(s)
@@ -5002,9 +4958,6 @@ makeTab("Hitbox", "📦", 8, function()
     end)
 end, nil)
 
--- =========================================================
--- TAB 9: GRAFIK ULTRA
--- =========================================================
 makeTab("Grafik Ultra", "🎬", 9, function()
     sec("Soft Cinematic", "🎬")
     tog("Soft Cinematic", false, function(s)
@@ -5059,7 +5012,7 @@ makeTab("Grafik Ultra", "🎬", 9, function()
         if GraphicState.SoftCinematic then GraphicApplyCharacterShadow() end
     end)
 end, function()
-    sec("Preset Soft Cinematic (16)", "🎬", rightScroll)
+    sec("Preset Soft Cinematic", "🎬", rightScroll)
     for _, presetName in ipairs(GraphicPresetOrder) do
         local icon = "🎬"
         if presetName == "Soft" then icon = "🌤️"
@@ -5146,13 +5099,8 @@ end, function()
             end
         end
     end, rightScroll)
-end)
+end)-- SECTION 9/15 : KEYBIND + CAMERA FIX + ANTI-ILANG
 
-print("✅ [8/15] ONE W - Tab ESP/Fire/Moonwalk/Misc/Visual/Hitbox/Grafik Ultra Loaded")-- =========================================================
--- SECTION 9/15 : KEYBIND + CAMERA FIX + ANTI-ILANG MENU
--- =========================================================
-
--- KEYBIND V UNTUK MOONWALK
 UIS.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == Enum.KeyCode.V then
@@ -5168,17 +5116,9 @@ UIS.InputBegan:Connect(function(input, gpe)
         end
         setMoonwalk(not Moonwalk.Enabled)
         if _G.Roooor_mwBtnUpdateUI then pcall(_G.Roooor_mwBtnUpdateUI) end
-        pcall(function()
-            StarterGui:SetCore("SendNotification", {
-                Title = "Moonwalk",
-                Text = Moonwalk.Enabled and "ON" or "OFF",
-                Duration = 1.5
-            })
-        end)
     end
 end)
 
--- KEYBIND K = UNLOCK KAMERA
 UIS.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == Enum.KeyCode.K then
@@ -5193,23 +5133,11 @@ UIS.InputBegan:Connect(function(input, gpe)
                     cam.Focus = CFrame.new(cam.CFrame.Position)
                     GuiService.SelectedObject = nil
                 end)
-                pcall(function()
-                    StarterGui:SetCore("SendNotification", {
-                        Title = "Camera Unlock",
-                        Text = "Kamera di-reset",
-                        Duration = 1.5
-                    })
-                end)
             end
         end
     end
 end)
 
-print("[KEYBIND] V = Moonwalk | K = Unlock Camera | RightShift = Menu")
-
--- =========================================================
--- FIX CAMERA LOCK SETELAH PARRY/GEN
--- =========================================================
 AP_LastCamFix = 0
 
 task.spawn(function()
@@ -5250,7 +5178,6 @@ task.spawn(function()
     end
 end)
 
--- Force unlock kamera setelah parry anim
 local function hookKillerParryAnim(char)
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hum then return end
@@ -5300,9 +5227,6 @@ Players.PlayerAdded:Connect(function(p)
     end)
 end)
 
--- =========================================================
--- ANTI-ILANG MENU
--- =========================================================
 local function forceAllGuiResetOnSpawnFalse()
     for _, g in ipairs(PG:GetChildren()) do
         if g:IsA("ScreenGui") then
@@ -5367,7 +5291,6 @@ end)
 LP.CharacterAdded:Connect(function(char)
     task.wait(1)
     pcall(forceAllGuiResetOnSpawnFalse)
-    print("[RESPAWN] Menu ONE W restored")
 end)
 
 task.spawn(function()
@@ -5404,14 +5327,8 @@ task.spawn(function()
             pcall(HookSenterButtons)
         end
     end
-end)
+end)-- SECTION 10/15 : LOGIC FITUR BARU
 
-print("✅ [9/15] ONE W - Keybind + Camera Fix + Anti-Ilang Menu")
-print("⌨️ Keybind: V = Moonwalk | K = Unlock Camera | RightShift = Menu")-- =========================================================
--- SECTION 10/15 : LOGIC FITUR BARU + LOOP TAMBAHAN
--- =========================================================
-
--- AUTO WIGGLE LOOP
 task.spawn(function()
     while task.wait(1) do
         if not AutoParry.Wiggle then continue end
@@ -5432,7 +5349,6 @@ task.spawn(function()
     end
 end)
 
--- AUTO FLEE LOOP
 task.spawn(function()
     while task.wait(0.2) do
         if not AutoFlee.Enabled then continue end
@@ -5462,7 +5378,6 @@ task.spawn(function()
     end
 end)
 
--- AUTO ESCAPE LOOP
 task.spawn(function()
     while task.wait(3) do
         if not S.AutoEscapeGate then continue end
@@ -5513,7 +5428,6 @@ task.spawn(function()
     end
 end)
 
--- FAST VAULT HOOK
 LP.CharacterAdded:Connect(function(char)
     task.wait(1)
     if FastVault.Enabled then
@@ -5525,7 +5439,6 @@ if LP.Character then
     pcall(function() hookVault(LP.Character) end)
 end
 
--- AUTO CARRY LOOP
 task.spawn(function()
     while task.wait(0.2) do
         if not S.AutoCarry or KillerBusy then continue end
@@ -5570,7 +5483,6 @@ task.spawn(function()
     end
 end)
 
--- FPS BOOST LOOP
 task.spawn(function()
     while task.wait(1) do
         if S.NoScreenEffects then applyNoScreenEffects() end
@@ -5579,7 +5491,6 @@ task.spawn(function()
     end
 end)
 
--- SKY + FIRE AUTO-REAPPLY
 task.spawn(function()
     while task.wait(8) do
         if S.SkyId and S.SkyId ~= "Default" then
@@ -5603,7 +5514,6 @@ task.spawn(function()
     end
 end)
 
--- FIX FOV BIND
 task.spawn(function()
     RunService.RenderStepped:Connect(function()
         if S.FOVEnabled then
@@ -5617,7 +5527,6 @@ task.spawn(function()
     end)
 end)
 
--- HITBOX LOOP
 task.spawn(function()
     while task.wait(0.3) do
         if not Hitbox.Enabled then
@@ -5672,7 +5581,6 @@ task.spawn(function()
     end
 end)
 
--- GRAFIK ULTRA - AUTO REAPPLY
 task.spawn(function()
     while task.wait(5) do
         if GraphicState.SoftCinematic then
@@ -5684,7 +5592,6 @@ task.spawn(function()
     end
 end)
 
--- GRAFIK ULTRA - NEW OBJECT HANDLER
 workspace.DescendantAdded:Connect(function(obj)
     task.defer(function()
         if GraphicState.SoftCinematic and obj:IsA("BasePart") then
@@ -5701,107 +5608,18 @@ LP.CharacterAdded:Connect(function(char)
     if GraphicState.SoftCinematic then
         pcall(GraphicApplyCharacterShadow)
     end
-end)
+end)-- SECTION 11/15 : PRINT FINAL
 
-print("✅ [10/15] ONE W - Logic Fitur Baru Loaded")
-print("🎬 Grafik Ultra auto-reapply aktif")-- =========================================================
--- SECTION 11/15 : PRINT FINAL
--- =========================================================
 task.wait(0.5)
 
-print("╔══════════════════════════════════════════╗")
-print("║  ONE W - GOLD PREMIUM HUB                ║")
-print("║  SEMUA FITUR LOADED                      ║")
-print("╠══════════════════════════════════════════╣")
-print("║  ⚙️ SEMUA FITUR DEFAULT OFF              ║")
-print("║  (KECUALI Auto-ON di Section 15)         ║")
-print("╠══════════════════════════════════════════╣")
-print("║  AUTO PARRY V5 (Tab Survivor)            ║")
-print("║     -> Hybrid + Predictive + Double Tap  ║")
-print("║     -> Filter Killer Lengkap             ║")
-print("╠══════════════════════════════════════════╣")
-print("║  AIMBOT SENTER (Tab Survivor) 🔥         ║")
-print("║     -> HOLD tombol = INSTANT LOCK        ║")
-print("║     -> Langsung ke HEAD Killer           ║")
-print("║     -> Sama kayak Aimlock Killer         ║")
-print("║     -> LEPAS = kamera bebas              ║")
-print("║     -> FIXED: GAK NYANGKUT               ║")
-print("╠══════════════════════════════════════════╣")
-print("║  AUTO SKILL CHECK                        ║")
-print("║     -> Perfect: Fallens Style            ║")
-print("║     -> Instant: Paksa sukses             ║")
-print("╠══════════════════════════════════════════╣")
-print("║  GRAFIK ULTRA (Tab BARU) 🎬              ║")
-print("║     -> Soft Cinematic (16 preset)        ║")
-print("║     -> Low Graphics, Full Bright, No Fog ║")
-print("║     -> Clean Sky, No Particle, No Grass  ║")
-print("║     -> Character Shadow (Soft/Bal/Sharp) ║")
-print("║     -> Time Control (6 pilihan)          ║")
-print("║     -> Reset Graphics                    ║")
-print("╠══════════════════════════════════════════╣")
-print("║  FITUR LAIN:                             ║")
-print("║     -> Moonwalk (Tombol MW + V)          ║")
-print("║     -> Fast Vault                        ║")
-print("║     -> Auto Wiggle                       ║")
-print("║     -> Auto Flee Killer                  ║")
-print("║     -> Auto Escape Gate                  ║")
-print("║     -> Auto Carry + Hook                 ║")
-print("║     -> Killer Auto Attack                ║")
-print("║     -> Masked Power (5 mode)             ║")
-print("║     -> Hitbox (TEXT ANGKA)               ║")
-print("║     -> God Mode                          ║")
-print("║     -> 8-Bit Royal Crown                 ║")
-print("║     -> Korblox Pencil (902942096)        ║")
-print("║     -> Headless FULL                     ║")
-print("║     -> HD Sky (Jernih)                   ║")
-print("║     -> HD Texture/Bloom/Shadow/dll       ║")
-print("║     -> Sky 18 PRESET                     ║")
-print("║     -> ESP (Survivor/Killer/Gen)         ║")
-print("║     -> ESP Pallet / Window / SCP         ║")
-print("║     -> Status ESP (Name/Dist/HP)         ║")
-print("║     -> Galaxy Name (Animated)            ║")
-print("║     -> Crosshair 8 Mode                  ║")
-print("║     -> Fire Trail + Aura                 ║")
-print("║     -> Kill Effect                       ║")
-print("║     -> Fullbright + No Fog               ║")
-print("║     -> Contrast + Saturation             ║")
-print("║     -> Zoom Out Camera                   ║")
-print("║     -> Walk Speed + Speed Hack           ║")
-print("║     -> No Clip + No Clip Camera          ║")
-print("║     -> FOV 70/90/120                     ║")
-print("║     -> Fire 60 EFEK                      ║")
-print("║     -> Anti-AFK + Rejoin                 ║")
-print("║     -> FPS + Ping Counter                ║")
-print("║     -> Kill Feed                         ║")
-print("║     -> Stun Notify                       ║")
-print("║     -> Instant Interact                  ║")
-print("║     -> TP ke Finish Line                 ║")
-print("╠══════════════════════════════════════════╣")
-print("║  CAMERA FIX (ANTI-LOCK)                  ║")
-print("║     -> Auto unlock setelah parry         ║")
-print("║     -> Force camera tiap 0.05s           ║")
-print("║     -> Skip kalau Aimbot Senter HOLD     ║")
-print("╠══════════════════════════════════════════╣")
-print("║  ANTI-ILANG MENU                         ║")
-print("║     -> ResetOnSpawn = false              ║")
-print("║     -> Recovery loop 0.2s                ║")
-print("║     -> Cari di CoreGui juga              ║")
-print("║     -> Menu TETEP ADA pas respawn        ║")
-print("║     -> Menu TETEP ADA pas execute ulang  ║")
-print("╠══════════════════════════════════════════╣")
-print("║  KEYBIND:                                ║")
-print("║     -> RightShift = Buka/Tutup Menu      ║")
-print("║     -> V = Moonwalk                      ║")
-print("║     -> K = Unlock Camera                 ║")
-print("╠══════════════════════════════════════════╣")
-print("║  TEMA: GOLD PREMIUM                      ║")
-print("║  Buka menu: Klik tombol W                ║")
-print("╚══════════════════════════════════════════╝")
-
-print("✅ [11/15] ONE W - FINAL LOADED!")
-print("🎯 Klik tombol W atau RightShift untuk buka menu")-- =========================================================
--- SECTION 12/15 : AIMBOT TAB (KILLER AIMLOCK)
--- =========================================================
+print("╔══════════════════════════╗")
+print("║        ONE W             ║")
+print("║   SEMUA FITUR LOADED     ║")
+print("╠══════════════════════════╣")
+print("║   RightShift = Menu      ║")
+print("║   V = Moonwalk           ║")
+print("║   K = Unlock Camera      ║")
+print("╚══════════════════════════╝")-- SECTION 12/15 : AIMBOT TAB
 
 Aimlock_AttackButtons = Aimlock_AttackButtons or {}
 
@@ -5821,7 +5639,6 @@ function Aimlock_ScanAttackButtons()
             table.insert(Aimlock_AttackButtons, obj)
         end
     end
-    print("[AIMLOCK] Found " .. #Aimlock_AttackButtons .. " attack button(s)")
 end
 
 function Aimlock_HookAttackButtons()
@@ -5927,9 +5744,6 @@ function Aimlock_StopLoop()
     end
 end
 
--- =========================================================
--- FLOATING GUI (GOLD THEME)
--- =========================================================
 Aimlock_Gui = nil
 Aimlock_FloatingBtn = nil
 Aimlock_FloatingPanel = nil
@@ -6031,7 +5845,7 @@ function Aimlock_CreateFloatingGUI()
     radLbl.Size = UDim2.new(1, -20, 0, 14)
     radLbl.Position = UDim2.new(0, 10, 0, 60)
     radLbl.BackgroundTransparency = 1
-    radLbl.Text = string.format("Radius: %.0f studs", Aimlock.Radius)
+    radLbl.Text = string.format("Radius: %.0f", Aimlock.Radius)
     radLbl.TextColor3 = C.TXT
     radLbl.TextSize = 9
     radLbl.Font = Enum.Font.GothamMedium
@@ -6056,11 +5870,8 @@ function Aimlock_RemoveFloatingGUI()
     end
 end
 
--- =========================================================
--- TAB AIMBOT (KILLER)
--- =========================================================
 makeTab("Aimbot", "🎯", 10, function()
-    sec("Aimbot Control", "🎯")
+    sec("Aimbot", "🎯")
     tog("Enable Aimbot", false, function(s)
         Aimlock.Enabled = s
         if s then
@@ -6071,7 +5882,6 @@ makeTab("Aimbot", "🎯", 10, function()
             Aimlock_StopLoop()
         end
     end)
-    lbl("Hold ATTACK = kamera lock ke Survivor", C.FIRE_BRIGHT)
 
     sec("Floating GUI", "👁️")
     tog("Show Aimbot GUI", false, function(s)
@@ -6082,13 +5892,13 @@ makeTab("Aimbot", "🎯", 10, function()
         end
     end)
 
-    sec("Radius Setting", "📏")
+    sec("Radius", "📏")
     sl("Aimbot Radius", 5, 100, 80, function(v)
         Aimlock.Radius = v
         if Aimlock_FloatingPanel then
             local radLbl = Aimlock_FloatingPanel:FindFirstChild("RadiusLabel")
             if radLbl then
-                radLbl.Text = string.format("Radius: %.0f studs", v)
+                radLbl.Text = string.format("Radius: %.0f", v)
             end
         end
     end)
@@ -6097,19 +5907,16 @@ end, function()
     drp("Aim Part", {"HumanoidRootPart", "Head", "UpperTorso"}, "HumanoidRootPart", function(v)
         Aimlock.AimPart = v
     end, rightScroll)
-    lbl("Target: Survivor (buat Killer)", C.FIRE_BRIGHT, rightScroll)
 
     sec("Test", "🔧", rightScroll)
     btn("Scan Attack Buttons", function()
         Aimlock_ScanAttackButtons()
     end, rightScroll)
-    btn("Manual Toggle Floating GUI", function()
+    btn("Toggle Floating GUI", function()
         if Aimlock_Gui then Aimlock_RemoveFloatingGUI()
         else Aimlock_CreateFloatingGUI() end
     end, rightScroll)
-end)
-
-print("✅ [12/15] ONE W - AIMBOT TAB Loaded (Gold Theme)")-- =========================================================
+end)-- =========================================================
 -- SECTION 13/15 : ANTI-ILANG MENU + AUTO RECOVERY
 -- =========================================================
 
