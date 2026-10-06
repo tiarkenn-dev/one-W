@@ -3623,9 +3623,7 @@ task.spawn(function()
     end
 end)
 
-print("✅ [5/15] ONE W - Fitur Aktif + Loop Utama Loaded")-- =========================================================
--- SECTION 6/15 : GUI ONE W GOLD (TEKS "W" - TANPA GAMBAR)
--- =========================================================
+print("✅ [5/15] ONE W - Fitur Aktif + Loop Utama Loaded")-- SECTION 6/15 : GUI
 
 gui = Instance.new("ScreenGui")
 gui.Name = "OneWHub"
@@ -3637,9 +3635,6 @@ gui.DisplayOrder = 99999
 local ok = pcall(function() gui.Parent = game:GetService("CoreGui") end)
 if not ok then gui.Parent = PG end
 
--- =========================================================
--- TOGGLE BUTTON "W" (TEKS + GLOW)
--- =========================================================
 btnContainer = Instance.new("TextButton")
 btnContainer.Size = UDim2.fromOffset(52, 52)
 btnContainer.Position = UDim2.fromOffset(20, 120)
@@ -3676,7 +3671,6 @@ tGrad.Color = ColorSequence.new(C.GOLD_DARK, C.GOLD, C.GOLD_LIGHT, C.GOLD, C.GOL
 tGrad.Rotation = 45
 tGrad.Parent = btnContainer
 
--- Animasi pulse
 task.spawn(function()
     local t = 0
     while btnContainer.Parent do
@@ -3703,9 +3697,6 @@ btnContainer.MouseLeave:Connect(function()
     }):Play()
 end)
 
--- =========================================================
--- PANEL UTAMA
--- =========================================================
 panel = Instance.new("Frame")
 panel.Size = UDim2.fromOffset(620, 420)
 panel.Position = UDim2.new(0.5, -310, 0.5, -210)
@@ -3723,9 +3714,6 @@ bgGrad.Color = ColorSequence.new(C.BG, C.BG2, C.BG)
 bgGrad.Rotation = 135
 bgGrad.Parent = panel
 
--- =========================================================
--- HEADER
--- =========================================================
 local header = Instance.new("Frame")
 header.Size = UDim2.new(1, 0, 0, 52)
 header.BackgroundColor3 = C.PANEL
@@ -3742,7 +3730,6 @@ hPatch.BackgroundTransparency = 0.05
 hPatch.BorderSizePixel = 0
 hPatch.Parent = header
 
--- Logo "W" teks
 local logo = Instance.new("Frame")
 logo.Size = UDim2.fromOffset(32, 32)
 logo.Position = UDim2.new(0, 12, 0.5, -16)
@@ -3765,14 +3752,13 @@ local logoGrad = Instance.new("UIGradient")
 logoGrad.Color = ColorSequence.new(C.GOLD, C.GOLD_LIGHT, C.ORANGE)
 logoGrad.Parent = logoText
 
--- Title
 local hTitle = Instance.new("TextLabel")
-hTitle.Size = UDim2.new(0, 200, 0, 18)
-hTitle.Position = UDim2.new(0, 52, 0, 10)
+hTitle.Size = UDim2.new(0, 200, 0, 24)
+hTitle.Position = UDim2.new(0, 52, 0, 14)
 hTitle.BackgroundTransparency = 1
 hTitle.Text = "ONE W"
 hTitle.TextColor3 = C.TXT
-hTitle.TextSize = 13
+hTitle.TextSize = 16
 hTitle.Font = Enum.Font.GothamBlack
 hTitle.TextXAlignment = Enum.TextXAlignment.Left
 hTitle.Parent = header
@@ -3781,51 +3767,6 @@ local hTitleGrad = Instance.new("UIGradient")
 hTitleGrad.Color = ColorSequence.new(C.GOLD, C.ORANGE)
 hTitleGrad.Parent = hTitle
 
-local hSubtitle = Instance.new("TextLabel")
-hSubtitle.Size = UDim2.new(0, 200, 0, 14)
-hSubtitle.Position = UDim2.new(0, 52, 0, 28)
-hSubtitle.BackgroundTransparency = 1
-hSubtitle.Text = "Gold Premium Hub"
-hSubtitle.TextColor3 = C.DIM
-hSubtitle.TextSize = 9
-hSubtitle.Font = Enum.Font.Gotham
-hSubtitle.TextXAlignment = Enum.TextXAlignment.Left
-hSubtitle.Parent = header
-
--- Search Bar
-local searchBox = Instance.new("Frame")
-searchBox.Size = UDim2.new(0, 200, 0, 28)
-searchBox.Position = UDim2.new(1, -290, 0.5, -14)
-searchBox.BackgroundColor3 = C.BG
-searchBox.BackgroundTransparency = 0.3
-searchBox.BorderSizePixel = 0
-searchBox.Parent = header
-rnd(searchBox, 6)
-strk(searchBox, C.GOLD, 1, 0.4)
-
-local searchIcon = Instance.new("TextLabel")
-searchIcon.Size = UDim2.new(0, 24, 1, 0)
-searchIcon.Position = UDim2.new(0, 4, 0, 0)
-searchIcon.BackgroundTransparency = 1
-searchIcon.Text = "🔍"
-searchIcon.TextSize = 11
-searchIcon.Parent = searchBox
-
-searchInput = Instance.new("TextBox")
-searchInput.Size = UDim2.new(1, -30, 1, 0)
-searchInput.Position = UDim2.new(0, 26, 0, 0)
-searchInput.BackgroundTransparency = 1
-searchInput.Text = ""
-searchInput.PlaceholderText = "Search..."
-searchInput.PlaceholderColor3 = C.DIM
-searchInput.TextColor3 = C.TXT
-searchInput.TextSize = 10
-searchInput.Font = Enum.Font.Gotham
-searchInput.TextXAlignment = Enum.TextXAlignment.Left
-searchInput.ClearTextOnFocus = false
-searchInput.Parent = searchBox
-
--- Minimize
 local minBtn = Instance.new("TextButton")
 minBtn.Size = UDim2.fromOffset(26, 26)
 minBtn.Position = UDim2.new(1, -62, 0.5, -13)
@@ -3841,7 +3782,6 @@ minBtn.Parent = header
 rnd(minBtn, 6)
 strk(minBtn, C.GOLD, 1, 0.4)
 
--- Close
 closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.fromOffset(26, 26)
 closeBtn.Position = UDim2.new(1, -32, 0.5, -13)
@@ -3857,9 +3797,6 @@ closeBtn.Parent = header
 rnd(closeBtn, 6)
 strk(closeBtn, C.RED, 1, 0.4)
 
--- =========================================================
--- TAB BAR
--- =========================================================
 tabBar = Instance.new("Frame")
 tabBar.Size = UDim2.new(1, -20, 0, 38)
 tabBar.Position = UDim2.new(0, 10, 0, 60)
@@ -3887,11 +3824,8 @@ tabLayout.Padding = UDim.new(0, 4)
 tabLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 tabLayout.Parent = tabScroll
 
--- =========================================================
--- CONTENT AREA (2 KOLOM)
--- =========================================================
 contentFrame = Instance.new("Frame")
-contentFrame.Size = UDim2.new(1, -20, 1, -115)
+contentFrame.Size = UDim2.new(1, -20, 1, -110)
 contentFrame.Position = UDim2.new(0, 10, 0, 105)
 contentFrame.BackgroundTransparency = 1
 contentFrame.Parent = panel
@@ -3948,20 +3882,6 @@ rightLayout.Parent = rightScroll
 cs = leftScroll
 _G.Roooor_cs = cs
 
--- FOOTER
-local footer = Instance.new("TextLabel")
-footer.Size = UDim2.new(1, 0, 0, 18)
-footer.Position = UDim2.new(0, 0, 1, -20)
-footer.BackgroundTransparency = 1
-footer.Text = "ONE W | Gold Premium Hub"
-footer.TextColor3 = C.GOLD
-footer.TextSize = 9
-footer.Font = Enum.Font.GothamBold
-footer.Parent = panel
-
--- =========================================================
--- DRAG PANEL
--- =========================================================
 dragging = false
 dragStart = nil
 startPos = nil
@@ -3993,7 +3913,6 @@ UIS.InputEnded:Connect(function(input)
     end
 end)
 
--- DRAG TOGGLE BUTTON
 btnDragging = false
 btnDragStart = nil
 btnStartPos = nil
@@ -4030,9 +3949,6 @@ UIS.InputEnded:Connect(function(input)
     end
 end)
 
--- =========================================================
--- OPEN / CLOSE PANEL
--- =========================================================
 isOpen = false
 
 function openPanel()
@@ -4077,17 +3993,13 @@ minBtn.MouseButton1Click:Connect(function()
     playToggleSound()
 end)
 
--- Keybind: RightShift
 UIS.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == Enum.KeyCode.RightShift then
         if isOpen then closePanel() else openPanel() end
         playToggleSound()
     end
-end)
-
-print("✅ [6/15] ONE W - GUI Header + Tombol W (TEKS) + Panel Loaded")
-print("⌨️  Keybind: RightShift")-- =========================================================
+end)-- =========================================================
 -- SECTION 7/15 : KOMPONEN + TAB UI PART 1
 -- =========================================================
 
