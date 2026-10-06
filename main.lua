@@ -3624,7 +3624,7 @@ task.spawn(function()
 end)
 
 print("✅ [5/15] ONE W - Fitur Aktif + Loop Utama Loaded")-- =========================================================
--- SECTION 6/15 : GUI ONE W GOLD + GAMBAR W
+-- SECTION 6/15 : GUI ONE W GOLD (FIXED v2)
 -- =========================================================
 
 local W_IMAGE_ID = "rbxassetid://123666447076005"
@@ -3640,17 +3640,21 @@ local ok = pcall(function() gui.Parent = game:GetService("CoreGui") end)
 if not ok then gui.Parent = PG end
 
 -- =========================================================
--- TOGGLE BUTTON "W" (GAMBAR + GLOW GOLD)
+-- TOGGLE BUTTON "W" (TEKS + GAMBAR OVERLAY)
 -- =========================================================
 btnContainer = Instance.new("TextButton")
-btnContainer.Size = UDim2.fromOffset(52, 52)
+btnContainer.Size = UDim2.fromOffset(54, 54)
 btnContainer.Position = UDim2.fromOffset(20, 120)
 btnContainer.BackgroundColor3 = C.PANEL
 btnContainer.BackgroundTransparency = 1
-btnContainer.Text = ""
+btnContainer.Text = "W"
+btnContainer.TextColor3 = C.GOLD
+btnContainer.TextSize = 24
+btnContainer.Font = Enum.Font.GothamBlack
 btnContainer.BorderSizePixel = 0
 btnContainer.AutoButtonColor = false
 btnContainer.Active = true
+btnContainer.ZIndex = 10
 btnContainer.Parent = gui
 rnd(btnContainer, 999)
 
@@ -3658,9 +3662,10 @@ rnd(btnContainer, 999)
 local btnBgCircle = Instance.new("Frame")
 btnBgCircle.Size = UDim2.fromScale(1, 1)
 btnBgCircle.BackgroundColor3 = Color3.fromRGB(20, 15, 5)
-btnBgCircle.BackgroundTransparency = 0.15
+btnBgCircle.BackgroundTransparency = 0.1
 btnBgCircle.BorderSizePixel = 0
 btnBgCircle.ZIndex = 0
+btnBgCircle.Active = false
 btnBgCircle.Parent = btnContainer
 rnd(btnBgCircle, 999)
 
@@ -3669,38 +3674,31 @@ btnBgGrad.Color = ColorSequence.new(C.GOLD_DARK, C.PANEL, C.GOLD_DARK)
 btnBgGrad.Rotation = 45
 btnBgGrad.Parent = btnBgCircle
 
--- Gambar W
+-- Gambar W overlay (transparan dulu)
 local btnImage = Instance.new("ImageLabel")
 btnImage.Name = "WImage"
-btnImage.Size = UDim2.fromScale(1, 1)
-btnImage.Position = UDim2.fromScale(0, 0)
+btnImage.Size = UDim2.fromScale(0.88, 0.88)
+btnImage.Position = UDim2.fromScale(0.06, 0.06)
 btnImage.BackgroundTransparency = 1
 btnImage.Image = W_IMAGE_ID
+btnImage.ImageTransparency = 1
 btnImage.ScaleType = Enum.ScaleType.Fit
 btnImage.ZIndex = 1
+btnImage.Active = false
 btnImage.Parent = btnContainer
 rnd(btnImage, 999)
 
--- Fallback text kalau gambar gagal load
-local btnFallback = Instance.new("TextLabel")
-btnFallback.Name = "WText"
-btnFallback.Size = UDim2.fromScale(1, 1)
-btnFallback.BackgroundTransparency = 1
-btnFallback.Text = "W"
-btnFallback.TextColor3 = C.GOLD
-btnFallback.TextSize = 22
-btnFallback.Font = Enum.Font.GothamBlack
-btnFallback.Visible = false
-btnFallback.ZIndex = 1
-btnFallback.Parent = btnContainer
-
--- Cek kalau gambar gagal load
-local imgLoaded = false
-btnImage.Loaded:Connect(function() imgLoaded = true end)
-task.delay(3, function()
-    if not imgLoaded and btnImage.IsLoaded == false then
-        btnFallback.Visible = true
-    end
+-- Cek load gambar
+task.delay(2, function()
+    pcall(function()
+        if btnImage.IsLoaded then
+            btnImage.ImageTransparency = 0
+            btnContainer.Text = ""
+        else
+            btnImage.ImageTransparency = 1
+            btnContainer.Text = "W"
+        end
+    end)
 end)
 
 -- Stroke + Glow
@@ -3733,20 +3731,24 @@ task.spawn(function()
         btnGlow.Transparency = 0.7 - math.abs(math.sin(t * 2)) * 0.4
         btnGlow2.Transparency = 0.85 - math.abs(math.sin(t * 1.5)) * 0.3
         btnStroke.Transparency = 0.1 + math.abs(math.sin(t * 2.5)) * 0.3
-        btnImage.Rotation = math.sin(t * 2) * 4
+        if btnImage.ImageTransparency < 1 then
+            btnImage.Rotation = math.sin(t * 2) * 4
+        end
+        btnContainer.TextColor3 = C.GOLD:Lerp(C.GOLD_LIGHT, math.abs(math.sin(t * 2)))
+        btnContainer.TextSize = 24 + math.sin(t * 3) * 1.5
         task.wait(0.03)
     end
 end)
 
 btnContainer.MouseEnter:Connect(function()
     TweenService:Create(btnContainer, TweenInfo.new(0.15), {
-        Size = UDim2.fromOffset(58, 58)
+        Size = UDim2.fromOffset(60, 60)
     }):Play()
 end)
 
 btnContainer.MouseLeave:Connect(function()
     TweenService:Create(btnContainer, TweenInfo.new(0.15), {
-        Size = UDim2.fromOffset(52, 52)
+        Size = UDim2.fromOffset(54, 54)
     }):Play()
 end)
 
@@ -3770,16 +3772,25 @@ bgGrad.Color = ColorSequence.new(C.BG, C.BG2, C.BG)
 bgGrad.Rotation = 135
 bgGrad.Parent = panel
 
--- Watermark besar (transparan di belakang)
+-- Watermark transparan
 local watermark = Instance.new("ImageLabel")
 watermark.Size = UDim2.fromOffset(260, 260)
 watermark.Position = UDim2.new(0, -60, 1, -180)
 watermark.BackgroundTransparency = 1
 watermark.Image = W_IMAGE_ID
-watermark.ImageTransparency = 0.88
+watermark.ImageTransparency = 1
 watermark.ScaleType = Enum.ScaleType.Fit
 watermark.ZIndex = 0
+watermark.Active = false
 watermark.Parent = panel
+
+task.delay(2, function()
+    pcall(function()
+        if watermark.IsLoaded then
+            watermark.ImageTransparency = 0.88
+        end
+    end)
+end)
 
 -- =========================================================
 -- HEADER
@@ -3802,10 +3813,10 @@ hPatch.BorderSizePixel = 0
 hPatch.ZIndex = 5
 hPatch.Parent = header
 
--- Logo gambar W
+-- Logo W (gambar + fallback teks)
 local logo = Instance.new("Frame")
-logo.Size = UDim2.fromOffset(32, 32)
-logo.Position = UDim2.new(0, 12, 0.5, -16)
+logo.Size = UDim2.fromOffset(34, 34)
+logo.Position = UDim2.new(0, 12, 0.5, -17)
 logo.BackgroundColor3 = C.PANEL2
 logo.BorderSizePixel = 0
 logo.ZIndex = 6
@@ -3814,19 +3825,42 @@ rnd(logo, 8)
 strk(logo, C.GOLD, 1.5, 0.3)
 
 local logoImage = Instance.new("ImageLabel")
-logoImage.Size = UDim2.fromScale(0.9, 0.9)
-logoImage.Position = UDim2.fromScale(0.05, 0.05)
+logoImage.Size = UDim2.fromScale(0.88, 0.88)
+logoImage.Position = UDim2.fromScale(0.06, 0.06)
 logoImage.BackgroundTransparency = 1
 logoImage.Image = W_IMAGE_ID
+logoImage.ImageTransparency = 1
 logoImage.ScaleType = Enum.ScaleType.Fit
 logoImage.ZIndex = 7
 logoImage.Parent = logo
 rnd(logoImage, 6)
 
+local logoText = Instance.new("TextLabel")
+logoText.Size = UDim2.fromScale(1, 1)
+logoText.BackgroundTransparency = 1
+logoText.Text = "W"
+logoText.TextColor3 = C.GOLD
+logoText.TextSize = 20
+logoText.Font = Enum.Font.GothamBlack
+logoText.ZIndex = 8
+logoText.Parent = logo
+
+task.delay(2, function()
+    pcall(function()
+        if logoImage.IsLoaded then
+            logoImage.ImageTransparency = 0
+            logoText.Text = ""
+        else
+            logoImage.ImageTransparency = 1
+            logoText.Text = "W"
+        end
+    end)
+end)
+
 -- Title
 local hTitle = Instance.new("TextLabel")
 hTitle.Size = UDim2.new(0, 200, 0, 18)
-hTitle.Position = UDim2.new(0, 52, 0, 10)
+hTitle.Position = UDim2.new(0, 54, 0, 10)
 hTitle.BackgroundTransparency = 1
 hTitle.Text = "ONE W"
 hTitle.TextColor3 = C.TXT
@@ -3842,7 +3876,7 @@ hTitleGrad.Parent = hTitle
 
 local hSubtitle = Instance.new("TextLabel")
 hSubtitle.Size = UDim2.new(0, 200, 0, 14)
-hSubtitle.Position = UDim2.new(0, 52, 0, 28)
+hSubtitle.Position = UDim2.new(0, 54, 0, 28)
 hSubtitle.BackgroundTransparency = 1
 hSubtitle.Text = "Gold Premium Hub"
 hSubtitle.TextColor3 = C.DIM
@@ -4038,7 +4072,6 @@ footer.Parent = panel
 dragging = false
 dragStart = nil
 startPos = nil
-wasDragged = false
 
 header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
@@ -4160,9 +4193,9 @@ UIS.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-print("✅ [6/15] ONE W - GUI Header + Toggle (GAMBAR W) + Panel Loaded")
-print("🎨 Tombol W pakai gambar ID: " .. W_IMAGE_ID)
-print("⌨️  Keybind: RightShift (aman, gak bentrok crouch)")-- =========================================================
+print("✅ [6/15] ONE W - GUI FIXED v2 (Tombol W bisa dipencet)")
+print("🎨 Gambar W ID: " .. W_IMAGE_ID)
+print("⌨️  Keybind: RightShift")-- =========================================================
 -- SECTION 7/15 : KOMPONEN + TAB UI PART 1
 -- =========================================================
 
