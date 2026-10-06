@@ -3624,10 +3624,8 @@ task.spawn(function()
 end)
 
 print("✅ [5/15] ONE W - Fitur Aktif + Loop Utama Loaded")-- =========================================================
--- SECTION 6/15 : GUI ONE W GOLD (FIXED v2)
+-- SECTION 6/15 : GUI ONE W GOLD (TEKS "W" - TANPA GAMBAR)
 -- =========================================================
-
-local W_IMAGE_ID = "rbxassetid://123666447076005"
 
 gui = Instance.new("ScreenGui")
 gui.Name = "OneWHub"
@@ -3640,115 +3638,68 @@ local ok = pcall(function() gui.Parent = game:GetService("CoreGui") end)
 if not ok then gui.Parent = PG end
 
 -- =========================================================
--- TOGGLE BUTTON "W" (TEKS + GAMBAR OVERLAY)
+-- TOGGLE BUTTON "W" (TEKS + GLOW)
 -- =========================================================
 btnContainer = Instance.new("TextButton")
-btnContainer.Size = UDim2.fromOffset(54, 54)
+btnContainer.Size = UDim2.fromOffset(52, 52)
 btnContainer.Position = UDim2.fromOffset(20, 120)
 btnContainer.BackgroundColor3 = C.PANEL
-btnContainer.BackgroundTransparency = 1
 btnContainer.Text = "W"
 btnContainer.TextColor3 = C.GOLD
-btnContainer.TextSize = 24
+btnContainer.TextSize = 22
 btnContainer.Font = Enum.Font.GothamBlack
 btnContainer.BorderSizePixel = 0
 btnContainer.AutoButtonColor = false
 btnContainer.Active = true
-btnContainer.ZIndex = 10
 btnContainer.Parent = gui
 rnd(btnContainer, 999)
 
--- Background circle
-local btnBgCircle = Instance.new("Frame")
-btnBgCircle.Size = UDim2.fromScale(1, 1)
-btnBgCircle.BackgroundColor3 = Color3.fromRGB(20, 15, 5)
-btnBgCircle.BackgroundTransparency = 0.1
-btnBgCircle.BorderSizePixel = 0
-btnBgCircle.ZIndex = 0
-btnBgCircle.Active = false
-btnBgCircle.Parent = btnContainer
-rnd(btnBgCircle, 999)
+local tStroke = Instance.new("UIStroke")
+tStroke.Thickness = 2
+tStroke.Color = C.GOLD
+tStroke.Parent = btnContainer
 
-local btnBgGrad = Instance.new("UIGradient")
-btnBgGrad.Color = ColorSequence.new(C.GOLD_DARK, C.PANEL, C.GOLD_DARK)
-btnBgGrad.Rotation = 45
-btnBgGrad.Parent = btnBgCircle
+local tGlow = Instance.new("UIStroke")
+tGlow.Color = C.GOLD_LIGHT
+tGlow.Thickness = 6
+tGlow.Transparency = 0.7
+tGlow.Parent = btnContainer
 
--- Gambar W overlay (transparan dulu)
-local btnImage = Instance.new("ImageLabel")
-btnImage.Name = "WImage"
-btnImage.Size = UDim2.fromScale(0.88, 0.88)
-btnImage.Position = UDim2.fromScale(0.06, 0.06)
-btnImage.BackgroundTransparency = 1
-btnImage.Image = W_IMAGE_ID
-btnImage.ImageTransparency = 1
-btnImage.ScaleType = Enum.ScaleType.Fit
-btnImage.ZIndex = 1
-btnImage.Active = false
-btnImage.Parent = btnContainer
-rnd(btnImage, 999)
+local tGlow2 = Instance.new("UIStroke")
+tGlow2.Color = C.ORANGE
+tGlow2.Thickness = 10
+tGlow2.Transparency = 0.85
+tGlow2.Parent = btnContainer
 
--- Cek load gambar
-task.delay(2, function()
-    pcall(function()
-        if btnImage.IsLoaded then
-            btnImage.ImageTransparency = 0
-            btnContainer.Text = ""
-        else
-            btnImage.ImageTransparency = 1
-            btnContainer.Text = "W"
-        end
-    end)
-end)
+local tGrad = Instance.new("UIGradient")
+tGrad.Color = ColorSequence.new(C.GOLD_DARK, C.GOLD, C.GOLD_LIGHT, C.GOLD, C.GOLD_DARK)
+tGrad.Rotation = 45
+tGrad.Parent = btnContainer
 
--- Stroke + Glow
-local btnStroke = Instance.new("UIStroke")
-btnStroke.Thickness = 2
-btnStroke.Color = C.GOLD
-btnStroke.ZIndex = 2
-btnStroke.Parent = btnContainer
-
-local btnGlow = Instance.new("UIStroke")
-btnGlow.Color = C.GOLD_LIGHT
-btnGlow.Thickness = 6
-btnGlow.Transparency = 0.7
-btnGlow.ZIndex = 2
-btnGlow.Parent = btnContainer
-
-local btnGlow2 = Instance.new("UIStroke")
-btnGlow2.Color = C.ORANGE
-btnGlow2.Thickness = 10
-btnGlow2.Transparency = 0.85
-btnGlow2.ZIndex = 2
-btnGlow2.Parent = btnContainer
-
--- Animasi
+-- Animasi pulse
 task.spawn(function()
     local t = 0
     while btnContainer.Parent do
         t = t + 0.03
-        btnBgGrad.Rotation = (t * 40) % 360
-        btnGlow.Transparency = 0.7 - math.abs(math.sin(t * 2)) * 0.4
-        btnGlow2.Transparency = 0.85 - math.abs(math.sin(t * 1.5)) * 0.3
-        btnStroke.Transparency = 0.1 + math.abs(math.sin(t * 2.5)) * 0.3
-        if btnImage.ImageTransparency < 1 then
-            btnImage.Rotation = math.sin(t * 2) * 4
-        end
+        tGrad.Rotation = (t * 40) % 360
+        tGlow.Transparency = 0.7 - math.abs(math.sin(t * 2)) * 0.4
+        tGlow2.Transparency = 0.85 - math.abs(math.sin(t * 1.5)) * 0.3
         btnContainer.TextColor3 = C.GOLD:Lerp(C.GOLD_LIGHT, math.abs(math.sin(t * 2)))
-        btnContainer.TextSize = 24 + math.sin(t * 3) * 1.5
+        btnContainer.TextSize = 22 + math.sin(t * 3) * 1.5
+        tStroke.Transparency = 0.1 + math.abs(math.sin(t * 2.5)) * 0.3
         task.wait(0.03)
     end
 end)
 
 btnContainer.MouseEnter:Connect(function()
     TweenService:Create(btnContainer, TweenInfo.new(0.15), {
-        Size = UDim2.fromOffset(60, 60)
+        Size = UDim2.fromOffset(58, 58)
     }):Play()
 end)
 
 btnContainer.MouseLeave:Connect(function()
     TweenService:Create(btnContainer, TweenInfo.new(0.15), {
-        Size = UDim2.fromOffset(54, 54)
+        Size = UDim2.fromOffset(52, 52)
     }):Play()
 end)
 
@@ -3772,26 +3723,6 @@ bgGrad.Color = ColorSequence.new(C.BG, C.BG2, C.BG)
 bgGrad.Rotation = 135
 bgGrad.Parent = panel
 
--- Watermark transparan
-local watermark = Instance.new("ImageLabel")
-watermark.Size = UDim2.fromOffset(260, 260)
-watermark.Position = UDim2.new(0, -60, 1, -180)
-watermark.BackgroundTransparency = 1
-watermark.Image = W_IMAGE_ID
-watermark.ImageTransparency = 1
-watermark.ScaleType = Enum.ScaleType.Fit
-watermark.ZIndex = 0
-watermark.Active = false
-watermark.Parent = panel
-
-task.delay(2, function()
-    pcall(function()
-        if watermark.IsLoaded then
-            watermark.ImageTransparency = 0.88
-        end
-    end)
-end)
-
 -- =========================================================
 -- HEADER
 -- =========================================================
@@ -3800,7 +3731,6 @@ header.Size = UDim2.new(1, 0, 0, 52)
 header.BackgroundColor3 = C.PANEL
 header.BackgroundTransparency = 0.05
 header.BorderSizePixel = 0
-header.ZIndex = 5
 header.Parent = panel
 rnd(header, 14)
 
@@ -3810,64 +3740,41 @@ hPatch.Position = UDim2.new(0, 0, 1, -26)
 hPatch.BackgroundColor3 = C.PANEL
 hPatch.BackgroundTransparency = 0.05
 hPatch.BorderSizePixel = 0
-hPatch.ZIndex = 5
 hPatch.Parent = header
 
--- Logo W (gambar + fallback teks)
+-- Logo "W" teks
 local logo = Instance.new("Frame")
-logo.Size = UDim2.fromOffset(34, 34)
-logo.Position = UDim2.new(0, 12, 0.5, -17)
+logo.Size = UDim2.fromOffset(32, 32)
+logo.Position = UDim2.new(0, 12, 0.5, -16)
 logo.BackgroundColor3 = C.PANEL2
 logo.BorderSizePixel = 0
-logo.ZIndex = 6
 logo.Parent = header
 rnd(logo, 8)
 strk(logo, C.GOLD, 1.5, 0.3)
 
-local logoImage = Instance.new("ImageLabel")
-logoImage.Size = UDim2.fromScale(0.88, 0.88)
-logoImage.Position = UDim2.fromScale(0.06, 0.06)
-logoImage.BackgroundTransparency = 1
-logoImage.Image = W_IMAGE_ID
-logoImage.ImageTransparency = 1
-logoImage.ScaleType = Enum.ScaleType.Fit
-logoImage.ZIndex = 7
-logoImage.Parent = logo
-rnd(logoImage, 6)
-
 local logoText = Instance.new("TextLabel")
-logoText.Size = UDim2.fromScale(1, 1)
+logoText.Size = UDim2.new(1, 0, 1, 0)
 logoText.BackgroundTransparency = 1
 logoText.Text = "W"
 logoText.TextColor3 = C.GOLD
-logoText.TextSize = 20
+logoText.TextSize = 18
 logoText.Font = Enum.Font.GothamBlack
-logoText.ZIndex = 8
 logoText.Parent = logo
 
-task.delay(2, function()
-    pcall(function()
-        if logoImage.IsLoaded then
-            logoImage.ImageTransparency = 0
-            logoText.Text = ""
-        else
-            logoImage.ImageTransparency = 1
-            logoText.Text = "W"
-        end
-    end)
-end)
+local logoGrad = Instance.new("UIGradient")
+logoGrad.Color = ColorSequence.new(C.GOLD, C.GOLD_LIGHT, C.ORANGE)
+logoGrad.Parent = logoText
 
 -- Title
 local hTitle = Instance.new("TextLabel")
 hTitle.Size = UDim2.new(0, 200, 0, 18)
-hTitle.Position = UDim2.new(0, 54, 0, 10)
+hTitle.Position = UDim2.new(0, 52, 0, 10)
 hTitle.BackgroundTransparency = 1
 hTitle.Text = "ONE W"
 hTitle.TextColor3 = C.TXT
 hTitle.TextSize = 13
 hTitle.Font = Enum.Font.GothamBlack
 hTitle.TextXAlignment = Enum.TextXAlignment.Left
-hTitle.ZIndex = 6
 hTitle.Parent = header
 
 local hTitleGrad = Instance.new("UIGradient")
@@ -3876,14 +3783,13 @@ hTitleGrad.Parent = hTitle
 
 local hSubtitle = Instance.new("TextLabel")
 hSubtitle.Size = UDim2.new(0, 200, 0, 14)
-hSubtitle.Position = UDim2.new(0, 54, 0, 28)
+hSubtitle.Position = UDim2.new(0, 52, 0, 28)
 hSubtitle.BackgroundTransparency = 1
 hSubtitle.Text = "Gold Premium Hub"
 hSubtitle.TextColor3 = C.DIM
 hSubtitle.TextSize = 9
 hSubtitle.Font = Enum.Font.Gotham
 hSubtitle.TextXAlignment = Enum.TextXAlignment.Left
-hSubtitle.ZIndex = 6
 hSubtitle.Parent = header
 
 -- Search Bar
@@ -3893,7 +3799,6 @@ searchBox.Position = UDim2.new(1, -290, 0.5, -14)
 searchBox.BackgroundColor3 = C.BG
 searchBox.BackgroundTransparency = 0.3
 searchBox.BorderSizePixel = 0
-searchBox.ZIndex = 6
 searchBox.Parent = header
 rnd(searchBox, 6)
 strk(searchBox, C.GOLD, 1, 0.4)
@@ -3904,7 +3809,6 @@ searchIcon.Position = UDim2.new(0, 4, 0, 0)
 searchIcon.BackgroundTransparency = 1
 searchIcon.Text = "🔍"
 searchIcon.TextSize = 11
-searchIcon.ZIndex = 7
 searchIcon.Parent = searchBox
 
 searchInput = Instance.new("TextBox")
@@ -3919,7 +3823,6 @@ searchInput.TextSize = 10
 searchInput.Font = Enum.Font.Gotham
 searchInput.TextXAlignment = Enum.TextXAlignment.Left
 searchInput.ClearTextOnFocus = false
-searchInput.ZIndex = 7
 searchInput.Parent = searchBox
 
 -- Minimize
@@ -3934,7 +3837,6 @@ minBtn.TextSize = 13
 minBtn.Font = Enum.Font.GothamBold
 minBtn.BorderSizePixel = 0
 minBtn.AutoButtonColor = false
-minBtn.ZIndex = 6
 minBtn.Parent = header
 rnd(minBtn, 6)
 strk(minBtn, C.GOLD, 1, 0.4)
@@ -3951,7 +3853,6 @@ closeBtn.TextSize = 11
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.BorderSizePixel = 0
 closeBtn.AutoButtonColor = false
-closeBtn.ZIndex = 6
 closeBtn.Parent = header
 rnd(closeBtn, 6)
 strk(closeBtn, C.RED, 1, 0.4)
@@ -3965,7 +3866,6 @@ tabBar.Position = UDim2.new(0, 10, 0, 60)
 tabBar.BackgroundColor3 = C.PANEL
 tabBar.BackgroundTransparency = 0.3
 tabBar.BorderSizePixel = 0
-tabBar.ZIndex = 5
 tabBar.Parent = panel
 rnd(tabBar, 8)
 strk(tabBar, C.GOLD, 1, 0.3)
@@ -3979,7 +3879,6 @@ tabScroll.ScrollBarThickness = 0
 tabScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 tabScroll.AutomaticCanvasSize = Enum.AutomaticSize.X
 tabScroll.ScrollingDirection = Enum.ScrollingDirection.X
-tabScroll.ZIndex = 6
 tabScroll.Parent = tabBar
 
 local tabLayout = Instance.new("UIListLayout")
@@ -3995,7 +3894,6 @@ contentFrame = Instance.new("Frame")
 contentFrame.Size = UDim2.new(1, -20, 1, -115)
 contentFrame.Position = UDim2.new(0, 10, 0, 105)
 contentFrame.BackgroundTransparency = 1
-contentFrame.ZIndex = 5
 contentFrame.Parent = panel
 
 leftCol = Instance.new("Frame")
@@ -4003,7 +3901,6 @@ leftCol.Size = UDim2.new(0.5, -5, 1, 0)
 leftCol.BackgroundColor3 = C.BG2
 leftCol.BackgroundTransparency = 0.3
 leftCol.BorderSizePixel = 0
-leftCol.ZIndex = 5
 leftCol.Parent = contentFrame
 rnd(leftCol, 10)
 strk(leftCol, C.GOLD, 1, 0.3)
@@ -4014,7 +3911,6 @@ rightCol.Position = UDim2.new(0.5, 5, 0, 0)
 rightCol.BackgroundColor3 = C.BG2
 rightCol.BackgroundTransparency = 0.3
 rightCol.BorderSizePixel = 0
-rightCol.ZIndex = 5
 rightCol.Parent = contentFrame
 rnd(rightCol, 10)
 strk(rightCol, C.GOLD, 1, 0.3)
@@ -4028,7 +3924,6 @@ leftScroll.ScrollBarThickness = 2
 leftScroll.ScrollBarImageColor3 = C.GOLD
 leftScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 leftScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-leftScroll.ZIndex = 6
 leftScroll.Parent = leftCol
 
 local leftLayout = Instance.new("UIListLayout")
@@ -4044,7 +3939,6 @@ rightScroll.ScrollBarThickness = 2
 rightScroll.ScrollBarImageColor3 = C.GOLD
 rightScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 rightScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-rightScroll.ZIndex = 6
 rightScroll.Parent = rightCol
 
 local rightLayout = Instance.new("UIListLayout")
@@ -4063,7 +3957,6 @@ footer.Text = "ONE W | Gold Premium Hub"
 footer.TextColor3 = C.GOLD
 footer.TextSize = 9
 footer.Font = Enum.Font.GothamBold
-footer.ZIndex = 6
 footer.Parent = panel
 
 -- =========================================================
@@ -4193,8 +4086,7 @@ UIS.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-print("✅ [6/15] ONE W - GUI FIXED v2 (Tombol W bisa dipencet)")
-print("🎨 Gambar W ID: " .. W_IMAGE_ID)
+print("✅ [6/15] ONE W - GUI Header + Tombol W (TEKS) + Panel Loaded")
 print("⌨️  Keybind: RightShift")-- =========================================================
 -- SECTION 7/15 : KOMPONEN + TAB UI PART 1
 -- =========================================================
