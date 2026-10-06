@@ -561,7 +561,7 @@ HitboxOriginalSizes = {}
 
 print("✅ [1/15] ONE W - Base + State Loaded (GOLD)")
 print("🔦 Aimbot Senter: HOLD = INSTANT LOCK | RELEASE = FREE")-- =========================================================
--- SECTION 2/15 : FIRE CONFIG + SKY + KILLER ANIMS
+-- SECTION 2/15 : FIRE CONFIG + SKY + KILLER ANIMS + GRAFIK PRESETS
 -- =========================================================
 
 FireList = {
@@ -1887,7 +1887,7 @@ _G.Roooor_updateFPSPing = updateFPSPing
 print("✅ [3/15] ONE W - Fungsi Utama + HD Sky + FPS/Ping + Grafik Ultra Logic")
 print("🔧 Fixed: applyFullbright, applyNoFog, applyFOV, applyCrosshair, applyTrail, applyAura, applyZoomOut, applyContrast, applyUltraHD, hookVault, hitboxClearAll, hitboxCreateText, hitboxUpdateVisibility, teleportToFinishLine, spawnKillEffect")
 print("🎬 Grafik Ultra: 16 preset + shadow + time + reset siap dipakai")-- =========================================================
--- SECTION 4/15 : ESP + AUTO PARRY + AIMBOT SENTER (FIX INSTANT)
+-- SECTION 4/15 : ESP + AUTO PARRY + AIMBOT SENTER (FIXED v3)
 -- =========================================================
 
 ESPObjects = {}
@@ -2508,7 +2508,7 @@ task.spawn(function()
 end)
 
 -- =========================================================
--- AIMBOT SENTER - FIX INSTANT LOCK (KAYAK AIMLOCK KILLER)
+-- AIMBOT SENTER - FIXED v3 (HOLD ONLY, GAK NYANGKUT)
 -- =========================================================
 AimbotLaserGui = nil
 AimbotLaserLines = {}
@@ -2523,12 +2523,27 @@ local function CreateLaserGui()
 end
 CreateLaserGui()
 
+-- Helper: cek apakah player ini killer (team + fallback nama)
+function AimbotSenter_IsKiller(p)
+    if not p or not p.Character then return false end
+    if p.Team and p.Team.Name == "Killer" then return true end
+    local charName = string.lower(p.Character.Name)
+    local dispName = string.lower(p.DisplayName or "")
+    local killerTags = {"killer", "hidden", "abyss", "walker", "masked", "jacket", "617", "jason", "hunter"}
+    for _, tag in ipairs(killerTags) do
+        if charName:find(tag) or dispName:find(tag) then return true end
+    end
+    return false
+end
+
+-- Scan tombol senter
 function ScanSenterButtons()
     local buttons = {}
     for _, obj in pairs(PG:GetDescendants()) do
         if obj:IsA("GuiObject") and obj.Visible then
             local n = string.lower(obj.Name)
-            if n:find("flashlight") or n:find("senter") or n:find("light") or n:find("torch") or n:find("flash")
+            if n:find("flashlight") or n:find("senter") or n:find("light")
+               or n:find("torch") or n:find("flash")
                or n:find("dagger") or n:find("knife") or n:find("blade") then
                 table.insert(buttons, obj)
             end
@@ -2537,22 +2552,32 @@ function ScanSenterButtons()
     return buttons
 end
 
+-- RESET STATE PAS EXECUTE
+AimbotSenter.HoldingSenter = false
+AimbotSenter.CurrentTarget = nil
+AimbotSenter._Hooked = {}
+
 function HookSenterButtons()
     local buttons = ScanSenterButtons()
     for _, obj in ipairs(buttons) do
         if AimbotSenter._Hooked[obj] then continue end
         AimbotSenter._Hooked[obj] = true
+
         obj.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if input.UserInputType == Enum.UserInputType.MouseButton1
+               or input.UserInputType == Enum.UserInputType.Touch then
                 AimbotSenter.HoldingSenter = true
             end
         end)
+
         obj.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if input.UserInputType == Enum.UserInputType.MouseButton1
+               or input.UserInputType == Enum.UserInputType.Touch then
                 AimbotSenter.HoldingSenter = false
                 AimbotSenter.CurrentTarget = nil
             end
         end)
+
         obj.MouseLeave:Connect(function()
             AimbotSenter.HoldingSenter = false
             AimbotSenter.CurrentTarget = nil
@@ -2560,81 +2585,114 @@ function HookSenterButtons()
     end
 end
 
--- FIX: Helper cari killer (fallback kalau Team gak valid)
-function AimbotSenter_IsKiller(p)
-    if not p or not p.Character then return false end
-    -- Cek team dulu
-    if p.Team and p.Team.Name == "Killer" then return true end
-    -- Fallback: cek nama karakter/display
-    local charName = string.lower(p.Character.Name)
-    local dispName = string.lower(p.DisplayName or "")
-    local killerTags = {"killer", "hidden", "abyss", "walker", "masked", "jacket", "617", "jason", "hunter"}
-    for _, tag in ipairs(killerTags) do
-        if charName:find(tag) or dispName:find(tag) then return true end
+-- FIX: cek apakah mouse/jari MASIH nempel
+local function IsSenterStillPressed()
+    -- Kalau touch device → cek jari masih nempel
+    if UIS.TouchEnabled then
+        local touches = UIS:GetTouches()
+        if #touches == 0 then
+            -- Fallback: cek mouse button juga
+            local mouseDown = false
+            pcall(function()
+                mouseDown = UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+            end)
+            return mouseDown
+        end
+        return true
     end
-    -- Fallback: cek umur karakter, atau nickname
-    return false
+    -- Kalau PC → cek mouse button
+    local mouseDown = false
+    pcall(function()
+        mouseDown = UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+    end)
+    return mouseDown
 end
 
+-- LOOP UTAMA
 task.spawn(function()
     while task.wait(0.01) do
+        -- FIX: PAKSA RESET kalau fitur OFF
         if not AimbotSenter.Enabled then
+            AimbotSenter.HoldingSenter = false
+            AimbotSenter.CurrentTarget = nil
             if AimbotLaserGui then
-                for _, line in pairs(AimbotLaserLines) do if line then line:Remove() end end
+                for _, line in pairs(AimbotLaserLines) do
+                    if line then line:Remove() end
+                end
                 AimbotLaserLines = {}
             end
             continue
         end
+
+        -- FIX: AUTO RESET kalau mouse/jari udah gak nempel
+        if AimbotSenter.HoldingSenter then
+            if not IsSenterStillPressed() then
+                AimbotSenter.HoldingSenter = false
+                AimbotSenter.CurrentTarget = nil
+            end
+        end
+
         if not AimbotSenter.HoldingSenter then
             AimbotSenter.CurrentTarget = nil
             if AimbotLaserGui then
-                for _, line in pairs(AimbotLaserLines) do if line then line:Remove() end end
+                for _, line in pairs(AimbotLaserLines) do
+                    if line then line:Remove() end
+                end
                 AimbotLaserLines = {}
             end
             continue
         end
+
         local myRoot = getRoot()
         if not myRoot then continue end
+
+        -- Cari killer terdekat
         local closest = nil
         local shortest = math.huge
         for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LP and p.Character then
-                if AimbotSenter_IsKiller(p) then
-                    local hum = p.Character:FindFirstChildOfClass("Humanoid")
-                    local targetPart = p.Character:FindFirstChild(AimbotSenter.LockPart or "Head")
-                    if hum and hum.Health > 0 and targetPart then
-                        local dist = (targetPart.Position - myRoot.Position).Magnitude
-                        if dist < shortest then
-                            shortest = dist
-                            closest = targetPart
-                        end
+            if p ~= LP and p.Character and AimbotSenter_IsKiller(p) then
+                local hum = p.Character:FindFirstChildOfClass("Humanoid")
+                local targetPart = p.Character:FindFirstChild(AimbotSenter.LockPart or "Head")
+                if hum and hum.Health > 0 and targetPart then
+                    local dist = (targetPart.Position - myRoot.Position).Magnitude
+                    if dist < shortest then
+                        shortest = dist
+                        closest = targetPart
                     end
                 end
             end
         end
+
         if not closest then
             AimbotSenter.CurrentTarget = nil
             if AimbotLaserGui then
-                for _, line in pairs(AimbotLaserLines) do if line then line:Remove() end end
+                for _, line in pairs(AimbotLaserLines) do
+                    if line then line:Remove() end
+                end
                 AimbotLaserLines = {}
             end
             continue
         end
+
         AimbotSenter.CurrentTarget = closest
-        -- FIX: INSTANT LOCK (gak pake Lerp, langsung set CFrame)
+
+        -- INSTANT LOCK (langsung set CFrame)
         local cam = workspace.CurrentCamera
         if cam then
             local camPos = cam.CFrame.Position
             local targetPos = closest.Position
             cam.CFrame = CFrame.new(camPos, targetPos)
         end
-        -- Laser line
+
+        -- Laser
         if AimbotSenter.ShowLaser then
             local cam2 = workspace.CurrentCamera
             local screenPoint, onScreen = cam2:WorldToViewportPoint(closest.Position)
             if onScreen then
                 if AimbotLaserGui then
-                    for _, line in pairs(AimbotLaserLines) do if line then line:Remove() end end
+                    for _, line in pairs(AimbotLaserLines) do
+                        if line then line:Remove() end
+                    end
                     AimbotLaserLines = {}
                 end
                 local centerX = cam2.ViewportSize.X / 2
@@ -2758,8 +2816,8 @@ function AP_UpdateCircle()
     end
 end
 
-print("✅ [4/15] ONE W - ESP + Auto Parry + Aimbot Senter (INSTANT LOCK FIXED)")
-print("🔦 Aimbot Senter: HOLD = INSTANT LOCK ke Head Killer | RELEASE = FREE")-- =========================================================
+print("✅ [4/15] ONE W - ESP + Auto Parry + Aimbot Senter FIXED v3")
+print("🔦 Aimbot Senter: HOLD = INSTANT LOCK | LEPAS = BEBAS (GAK NYANGKUT)")-- =========================================================
 -- SECTION 5/15 : FITUR AKTIF + LOOP UTAMA
 -- =========================================================
 
@@ -3566,8 +3624,10 @@ task.spawn(function()
 end)
 
 print("✅ [5/15] ONE W - Fitur Aktif + Loop Utama Loaded")-- =========================================================
--- SECTION 6/15 : GUI ONE W GOLD (HEADER + BUTTON + PANEL)
+-- SECTION 6/15 : GUI ONE W GOLD + GAMBAR W
 -- =========================================================
+
+local W_IMAGE_ID = "rbxassetid://123666447076005"
 
 gui = Instance.new("ScreenGui")
 gui.Name = "OneWHub"
@@ -3580,67 +3640,113 @@ local ok = pcall(function() gui.Parent = game:GetService("CoreGui") end)
 if not ok then gui.Parent = PG end
 
 -- =========================================================
--- TOGGLE BUTTON "W" (GLOW + GRADIENT + PULSE GOLD)
+-- TOGGLE BUTTON "W" (GAMBAR + GLOW GOLD)
 -- =========================================================
 btnContainer = Instance.new("TextButton")
-btnContainer.Size = UDim2.fromOffset(46, 46)
+btnContainer.Size = UDim2.fromOffset(52, 52)
 btnContainer.Position = UDim2.fromOffset(20, 120)
 btnContainer.BackgroundColor3 = C.PANEL
-btnContainer.Text = "W"
-btnContainer.TextColor3 = C.GOLD
-btnContainer.TextSize = 22
-btnContainer.Font = Enum.Font.GothamBlack
+btnContainer.BackgroundTransparency = 1
+btnContainer.Text = ""
 btnContainer.BorderSizePixel = 0
 btnContainer.AutoButtonColor = false
 btnContainer.Active = true
 btnContainer.Parent = gui
 rnd(btnContainer, 999)
 
+-- Background circle
+local btnBgCircle = Instance.new("Frame")
+btnBgCircle.Size = UDim2.fromScale(1, 1)
+btnBgCircle.BackgroundColor3 = Color3.fromRGB(20, 15, 5)
+btnBgCircle.BackgroundTransparency = 0.15
+btnBgCircle.BorderSizePixel = 0
+btnBgCircle.ZIndex = 0
+btnBgCircle.Parent = btnContainer
+rnd(btnBgCircle, 999)
+
+local btnBgGrad = Instance.new("UIGradient")
+btnBgGrad.Color = ColorSequence.new(C.GOLD_DARK, C.PANEL, C.GOLD_DARK)
+btnBgGrad.Rotation = 45
+btnBgGrad.Parent = btnBgCircle
+
+-- Gambar W
+local btnImage = Instance.new("ImageLabel")
+btnImage.Name = "WImage"
+btnImage.Size = UDim2.fromScale(1, 1)
+btnImage.Position = UDim2.fromScale(0, 0)
+btnImage.BackgroundTransparency = 1
+btnImage.Image = W_IMAGE_ID
+btnImage.ScaleType = Enum.ScaleType.Fit
+btnImage.ZIndex = 1
+btnImage.Parent = btnContainer
+rnd(btnImage, 999)
+
+-- Fallback text kalau gambar gagal load
+local btnFallback = Instance.new("TextLabel")
+btnFallback.Name = "WText"
+btnFallback.Size = UDim2.fromScale(1, 1)
+btnFallback.BackgroundTransparency = 1
+btnFallback.Text = "W"
+btnFallback.TextColor3 = C.GOLD
+btnFallback.TextSize = 22
+btnFallback.Font = Enum.Font.GothamBlack
+btnFallback.Visible = false
+btnFallback.ZIndex = 1
+btnFallback.Parent = btnContainer
+
+-- Cek kalau gambar gagal load
+local imgLoaded = false
+btnImage.Loaded:Connect(function() imgLoaded = true end)
+task.delay(3, function()
+    if not imgLoaded and btnImage.IsLoaded == false then
+        btnFallback.Visible = true
+    end
+end)
+
+-- Stroke + Glow
 local btnStroke = Instance.new("UIStroke")
 btnStroke.Thickness = 2
 btnStroke.Color = C.GOLD
+btnStroke.ZIndex = 2
 btnStroke.Parent = btnContainer
 
 local btnGlow = Instance.new("UIStroke")
 btnGlow.Color = C.GOLD_LIGHT
 btnGlow.Thickness = 6
 btnGlow.Transparency = 0.7
+btnGlow.ZIndex = 2
 btnGlow.Parent = btnContainer
 
 local btnGlow2 = Instance.new("UIStroke")
 btnGlow2.Color = C.ORANGE
 btnGlow2.Thickness = 10
 btnGlow2.Transparency = 0.85
+btnGlow2.ZIndex = 2
 btnGlow2.Parent = btnContainer
 
-local btnGrad = Instance.new("UIGradient")
-btnGrad.Color = ColorSequence.new(C.GOLD_DARK, C.GOLD, C.GOLD_LIGHT, C.GOLD, C.GOLD_DARK)
-btnGrad.Rotation = 45
-btnGrad.Parent = btnContainer
-
+-- Animasi
 task.spawn(function()
     local t = 0
     while btnContainer.Parent do
         t = t + 0.03
-        btnGrad.Rotation = (t * 40) % 360
+        btnBgGrad.Rotation = (t * 40) % 360
         btnGlow.Transparency = 0.7 - math.abs(math.sin(t * 2)) * 0.4
         btnGlow2.Transparency = 0.85 - math.abs(math.sin(t * 1.5)) * 0.3
-        btnContainer.TextColor3 = C.GOLD:Lerp(C.GOLD_LIGHT, math.abs(math.sin(t * 2)))
-        btnContainer.TextSize = 22 + math.sin(t * 3) * 1.5
         btnStroke.Transparency = 0.1 + math.abs(math.sin(t * 2.5)) * 0.3
+        btnImage.Rotation = math.sin(t * 2) * 4
         task.wait(0.03)
     end
 end)
 
 btnContainer.MouseEnter:Connect(function()
     TweenService:Create(btnContainer, TweenInfo.new(0.15), {
-        Size = UDim2.fromOffset(52, 52)
+        Size = UDim2.fromOffset(58, 58)
     }):Play()
 end)
 
 btnContainer.MouseLeave:Connect(function()
     TweenService:Create(btnContainer, TweenInfo.new(0.15), {
-        Size = UDim2.fromOffset(46, 46)
+        Size = UDim2.fromOffset(52, 52)
     }):Play()
 end)
 
@@ -3664,6 +3770,17 @@ bgGrad.Color = ColorSequence.new(C.BG, C.BG2, C.BG)
 bgGrad.Rotation = 135
 bgGrad.Parent = panel
 
+-- Watermark besar (transparan di belakang)
+local watermark = Instance.new("ImageLabel")
+watermark.Size = UDim2.fromOffset(260, 260)
+watermark.Position = UDim2.new(0, -60, 1, -180)
+watermark.BackgroundTransparency = 1
+watermark.Image = W_IMAGE_ID
+watermark.ImageTransparency = 0.88
+watermark.ScaleType = Enum.ScaleType.Fit
+watermark.ZIndex = 0
+watermark.Parent = panel
+
 -- =========================================================
 -- HEADER
 -- =========================================================
@@ -3672,6 +3789,7 @@ header.Size = UDim2.new(1, 0, 0, 52)
 header.BackgroundColor3 = C.PANEL
 header.BackgroundTransparency = 0.05
 header.BorderSizePixel = 0
+header.ZIndex = 5
 header.Parent = panel
 rnd(header, 14)
 
@@ -3681,30 +3799,31 @@ hPatch.Position = UDim2.new(0, 0, 1, -26)
 hPatch.BackgroundColor3 = C.PANEL
 hPatch.BackgroundTransparency = 0.05
 hPatch.BorderSizePixel = 0
+hPatch.ZIndex = 5
 hPatch.Parent = header
 
+-- Logo gambar W
 local logo = Instance.new("Frame")
 logo.Size = UDim2.fromOffset(32, 32)
 logo.Position = UDim2.new(0, 12, 0.5, -16)
 logo.BackgroundColor3 = C.PANEL2
 logo.BorderSizePixel = 0
+logo.ZIndex = 6
 logo.Parent = header
 rnd(logo, 8)
 strk(logo, C.GOLD, 1.5, 0.3)
 
-local logoText = Instance.new("TextLabel")
-logoText.Size = UDim2.new(1, 0, 1, 0)
-logoText.BackgroundTransparency = 1
-logoText.Text = "W"
-logoText.TextColor3 = C.GOLD
-logoText.TextSize = 18
-logoText.Font = Enum.Font.GothamBlack
-logoText.Parent = logo
+local logoImage = Instance.new("ImageLabel")
+logoImage.Size = UDim2.fromScale(0.9, 0.9)
+logoImage.Position = UDim2.fromScale(0.05, 0.05)
+logoImage.BackgroundTransparency = 1
+logoImage.Image = W_IMAGE_ID
+logoImage.ScaleType = Enum.ScaleType.Fit
+logoImage.ZIndex = 7
+logoImage.Parent = logo
+rnd(logoImage, 6)
 
-local logoGrad = Instance.new("UIGradient")
-logoGrad.Color = ColorSequence.new(C.GOLD, C.GOLD_LIGHT, C.ORANGE)
-logoGrad.Parent = logoText
-
+-- Title
 local hTitle = Instance.new("TextLabel")
 hTitle.Size = UDim2.new(0, 200, 0, 18)
 hTitle.Position = UDim2.new(0, 52, 0, 10)
@@ -3714,6 +3833,7 @@ hTitle.TextColor3 = C.TXT
 hTitle.TextSize = 13
 hTitle.Font = Enum.Font.GothamBlack
 hTitle.TextXAlignment = Enum.TextXAlignment.Left
+hTitle.ZIndex = 6
 hTitle.Parent = header
 
 local hTitleGrad = Instance.new("UIGradient")
@@ -3729,6 +3849,7 @@ hSubtitle.TextColor3 = C.DIM
 hSubtitle.TextSize = 9
 hSubtitle.Font = Enum.Font.Gotham
 hSubtitle.TextXAlignment = Enum.TextXAlignment.Left
+hSubtitle.ZIndex = 6
 hSubtitle.Parent = header
 
 -- Search Bar
@@ -3738,6 +3859,7 @@ searchBox.Position = UDim2.new(1, -290, 0.5, -14)
 searchBox.BackgroundColor3 = C.BG
 searchBox.BackgroundTransparency = 0.3
 searchBox.BorderSizePixel = 0
+searchBox.ZIndex = 6
 searchBox.Parent = header
 rnd(searchBox, 6)
 strk(searchBox, C.GOLD, 1, 0.4)
@@ -3748,6 +3870,7 @@ searchIcon.Position = UDim2.new(0, 4, 0, 0)
 searchIcon.BackgroundTransparency = 1
 searchIcon.Text = "🔍"
 searchIcon.TextSize = 11
+searchIcon.ZIndex = 7
 searchIcon.Parent = searchBox
 
 searchInput = Instance.new("TextBox")
@@ -3762,6 +3885,7 @@ searchInput.TextSize = 10
 searchInput.Font = Enum.Font.Gotham
 searchInput.TextXAlignment = Enum.TextXAlignment.Left
 searchInput.ClearTextOnFocus = false
+searchInput.ZIndex = 7
 searchInput.Parent = searchBox
 
 -- Minimize
@@ -3776,6 +3900,7 @@ minBtn.TextSize = 13
 minBtn.Font = Enum.Font.GothamBold
 minBtn.BorderSizePixel = 0
 minBtn.AutoButtonColor = false
+minBtn.ZIndex = 6
 minBtn.Parent = header
 rnd(minBtn, 6)
 strk(minBtn, C.GOLD, 1, 0.4)
@@ -3792,6 +3917,7 @@ closeBtn.TextSize = 11
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.BorderSizePixel = 0
 closeBtn.AutoButtonColor = false
+closeBtn.ZIndex = 6
 closeBtn.Parent = header
 rnd(closeBtn, 6)
 strk(closeBtn, C.RED, 1, 0.4)
@@ -3805,6 +3931,7 @@ tabBar.Position = UDim2.new(0, 10, 0, 60)
 tabBar.BackgroundColor3 = C.PANEL
 tabBar.BackgroundTransparency = 0.3
 tabBar.BorderSizePixel = 0
+tabBar.ZIndex = 5
 tabBar.Parent = panel
 rnd(tabBar, 8)
 strk(tabBar, C.GOLD, 1, 0.3)
@@ -3818,6 +3945,7 @@ tabScroll.ScrollBarThickness = 0
 tabScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 tabScroll.AutomaticCanvasSize = Enum.AutomaticSize.X
 tabScroll.ScrollingDirection = Enum.ScrollingDirection.X
+tabScroll.ZIndex = 6
 tabScroll.Parent = tabBar
 
 local tabLayout = Instance.new("UIListLayout")
@@ -3833,6 +3961,7 @@ contentFrame = Instance.new("Frame")
 contentFrame.Size = UDim2.new(1, -20, 1, -115)
 contentFrame.Position = UDim2.new(0, 10, 0, 105)
 contentFrame.BackgroundTransparency = 1
+contentFrame.ZIndex = 5
 contentFrame.Parent = panel
 
 leftCol = Instance.new("Frame")
@@ -3840,6 +3969,7 @@ leftCol.Size = UDim2.new(0.5, -5, 1, 0)
 leftCol.BackgroundColor3 = C.BG2
 leftCol.BackgroundTransparency = 0.3
 leftCol.BorderSizePixel = 0
+leftCol.ZIndex = 5
 leftCol.Parent = contentFrame
 rnd(leftCol, 10)
 strk(leftCol, C.GOLD, 1, 0.3)
@@ -3850,6 +3980,7 @@ rightCol.Position = UDim2.new(0.5, 5, 0, 0)
 rightCol.BackgroundColor3 = C.BG2
 rightCol.BackgroundTransparency = 0.3
 rightCol.BorderSizePixel = 0
+rightCol.ZIndex = 5
 rightCol.Parent = contentFrame
 rnd(rightCol, 10)
 strk(rightCol, C.GOLD, 1, 0.3)
@@ -3863,6 +3994,7 @@ leftScroll.ScrollBarThickness = 2
 leftScroll.ScrollBarImageColor3 = C.GOLD
 leftScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 leftScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+leftScroll.ZIndex = 6
 leftScroll.Parent = leftCol
 
 local leftLayout = Instance.new("UIListLayout")
@@ -3878,13 +4010,13 @@ rightScroll.ScrollBarThickness = 2
 rightScroll.ScrollBarImageColor3 = C.GOLD
 rightScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 rightScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+rightScroll.ZIndex = 6
 rightScroll.Parent = rightCol
 
 local rightLayout = Instance.new("UIListLayout")
 rightLayout.Padding = UDim.new(0, 5)
 rightLayout.Parent = rightScroll
 
--- ALIAS: cs = leftScroll (biar section 7-15 gak error)
 cs = leftScroll
 _G.Roooor_cs = cs
 
@@ -3897,6 +4029,7 @@ footer.Text = "ONE W | Gold Premium Hub"
 footer.TextColor3 = C.GOLD
 footer.TextSize = 9
 footer.Font = Enum.Font.GothamBold
+footer.ZIndex = 6
 footer.Parent = panel
 
 -- =========================================================
@@ -4018,7 +4151,7 @@ minBtn.MouseButton1Click:Connect(function()
     playToggleSound()
 end)
 
--- Keybind: RightShift (ganti dari LeftCtrl biar gak bentrok crouch)
+-- Keybind: RightShift
 UIS.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == Enum.KeyCode.RightShift then
@@ -4027,17 +4160,15 @@ UIS.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-print("✅ [6/15] ONE W - GUI Header + Toggle Button + Panel Loaded")
-print("⌨️  Keybind: RightShift (aman, gak bentrok crouch)")
-print("🎯 Tombol W buat buka/tutup menu")-- =========================================================
+print("✅ [6/15] ONE W - GUI Header + Toggle (GAMBAR W) + Panel Loaded")
+print("🎨 Tombol W pakai gambar ID: " .. W_IMAGE_ID)
+print("⌨️  Keybind: RightShift (aman, gak bentrok crouch)")-- =========================================================
 -- SECTION 7/15 : KOMPONEN + TAB UI PART 1
 -- =========================================================
 
 -- =========================================================
 -- KOMPONEN UI (2 KOLOM SUPPORT)
 -- =========================================================
--- Kalau dipanggil tanpa parent, default ke cs (leftScroll)
--- Kalau parent dikasih, pakai parent itu (buat rightScroll)
 
 function sec(title, icon, parent)
     parent = parent or cs
@@ -4460,7 +4591,7 @@ function makeTab(name, icon, order, leftCb, rightCb)
     end)
 end
 
--- Alias global biar gak error
+-- Alias global
 _G.Roooor_sec = sec
 _G.Roooor_lbl = lbl
 _G.Roooor_tog = tog
@@ -4646,7 +4777,7 @@ end, function()
 end)
 
 print("✅ [7/15] ONE W - Komponen + Tab Survivor/Killer Loaded")-- =========================================================
--- SECTION 8/15 : TAB UI PART 2 (ESP, FIRE, MOONWALK, MISC, VISUAL, HITBOX)
+-- SECTION 8/15 : TAB UI PART 2 (ESP, FIRE, MOONWALK, MISC, VISUAL, HITBOX, GRAFIK ULTRA)
 -- =========================================================
 
 -- =========================================================
@@ -5035,7 +5166,7 @@ makeTab("Hitbox", "📦", 8, function()
 end, nil)
 
 -- =========================================================
--- TAB 9: GRAFIK ULTRA (BARU - dari Xynoz)
+-- TAB 9: GRAFIK ULTRA
 -- =========================================================
 makeTab("Grafik Ultra", "🎬", 9, function()
     sec("Soft Cinematic", "🎬")
@@ -5125,6 +5256,7 @@ end, function()
         btn2.Parent = rightScroll
         rnd(btn2, 6)
         strk(btn2, C.GOLD, 1, 0.4)
+        btn2:SetAttribute("IsPreset", true)
 
         local pad = Instance.new("UIPadding")
         pad.PaddingLeft = UDim.new(0, 10)
@@ -5150,7 +5282,6 @@ end, function()
             btn2.TextColor3 = Color3.fromRGB(40, 30, 10)
             playToggleSound()
         end)
-        btn2:SetAttribute("IsPreset", true)
     end
 
     sec("Time", "🕐", rightScroll)
@@ -5237,7 +5368,7 @@ UIS.InputBegan:Connect(function(input, gpe)
     end
 end)
 
-print("[KEYBIND] V = Moonwalk | K = Unlock Camera | RightShift = Buka Menu")
+print("[KEYBIND] V = Moonwalk | K = Unlock Camera | RightShift = Menu")
 
 -- =========================================================
 -- FIX CAMERA LOCK SETELAH PARRY/GEN
@@ -5253,20 +5384,12 @@ task.spawn(function()
         local hum = char:FindFirstChildOfClass("Humanoid")
         if not hum or hum.Health <= 0 then continue end
 
-        -- Skip kalau Aimbot Senter lagi HOLD
         if AimbotSenter.Enabled and AimbotSenter.HoldingSenter then continue end
-
-        -- Skip kalau GUI ada yang di-select
         if GuiService.SelectedObject then continue end
 
         local needFix = false
-
-        if cam.CameraType ~= Enum.CameraType.Custom then
-            needFix = true
-        end
-        if cam.CameraSubject ~= hum then
-            needFix = true
-        end
+        if cam.CameraType ~= Enum.CameraType.Custom then needFix = true end
+        if cam.CameraSubject ~= hum then needFix = true end
 
         local state = hum:GetState()
         if state == Enum.HumanoidStateType.FallingDown
@@ -5301,9 +5424,7 @@ local function hookKillerParryAnim(char)
         local a = track.Animation
         if not a or not a.AnimationId then return end
         local id = a.AnimationId:match("%d+")
-        if id == "127096285501517"
-            or id == "123047897844134"
-            or id == "112166042383605" then
+        if id == "127096285501517" or id == "123047897844134" or id == "112166042383605" then
             task.delay(0.1, function()
                 local cam = workspace.CurrentCamera
                 local myChar = LP.Character
@@ -5360,7 +5481,6 @@ task.spawn(function()
     while task.wait(0.2) do
         pcall(forceAllGuiResetOnSpawnFalse)
 
-        -- Kalau gui ilang dari CoreGui/PG, cari di tempat lain
         if not gui or not gui.Parent then
             local existing = PG:FindFirstChild("OneWHub")
                 or (game:GetService("CoreGui") and game:GetService("CoreGui"):FindFirstChild("OneWHub"))
@@ -5407,20 +5527,17 @@ task.spawn(function()
     end
 end)
 
--- Respawn — Menu tetap ada
 LP.CharacterAdded:Connect(function(char)
     task.wait(1)
     pcall(forceAllGuiResetOnSpawnFalse)
     print("[RESPAWN] Menu ONE W restored")
 end)
 
--- Create FPS/Ping GUI
 task.spawn(function()
     task.wait(3)
     pcall(createFPSPingGui)
 end)
 
--- Hook killer baru pas spawn
 Players.PlayerAdded:Connect(function(p)
     p.CharacterAdded:Connect(function(char)
         task.wait(1)
@@ -5432,7 +5549,6 @@ Players.PlayerAdded:Connect(function(p)
     end)
 end)
 
--- Scan killers loop
 task.spawn(function()
     while task.wait(1) do
         if AutoParry.Enabled then
@@ -5445,7 +5561,6 @@ task.spawn(function()
     end
 end)
 
--- Scan tombol senter loop
 task.spawn(function()
     while task.wait(2) do
         if AimbotSenter.Enabled then
@@ -5732,7 +5847,7 @@ task.spawn(function()
     end
 end)
 
--- GRAFIK ULTRA - NEW OBJECT HANDLER (untuk shadow karakter baru)
+-- GRAFIK ULTRA - NEW OBJECT HANDLER
 workspace.DescendantAdded:Connect(function(obj)
     task.defer(function()
         if GraphicState.SoftCinematic and obj:IsA("BasePart") then
@@ -5773,6 +5888,7 @@ print("║     -> HOLD tombol = INSTANT LOCK        ║")
 print("║     -> Langsung ke HEAD Killer           ║")
 print("║     -> Sama kayak Aimlock Killer         ║")
 print("║     -> LEPAS = kamera bebas              ║")
+print("║     -> FIXED: GAK NYANGKUT               ║")
 print("╠══════════════════════════════════════════╣")
 print("║  AUTO SKILL CHECK                        ║")
 print("║     -> Perfect: Fallens Style            ║")
@@ -6193,10 +6309,9 @@ print("[ANTI-HILANG] Force ResetOnSpawn = false aktif")
 -- =========================================================
 -- SCRIPT URL (buat re-execute kalau GUI ilang total)
 -- =========================================================
-local SCRIPT_URL = "https://raw.githubusercontent.com/tiarkenn-dev/Cosmishub/main/main.lua"
+local SCRIPT_URL = "https://raw.githubusercontent.com/tiarkenn-dev/one-W/main/main.lua"
 
 function RecreateAllGUI()
-    -- Cari di PG dulu, kalau gak ada cari di CoreGui
     local coreGui = game:GetService("CoreGui")
 
     if not gui or not gui.Parent then
@@ -6522,7 +6637,6 @@ task.spawn(function()
     while task.wait(0.15) do
         pcall(ForceGUIV14)
 
-        -- Cari di PG + CoreGui
         local coreGui = game:GetService("CoreGui")
 
         if not gui or not gui.Parent then
@@ -6586,179 +6700,10 @@ print("  📷 No Camera Lock: FORCE UNLOCK")
 print("  🖥️  Menu Permanen: FORCE RECREATE")
 print("═══════════════════════════════════════════")
 print("")-- =========================================================
--- SECTION 15/15 : AIMBOT SENTER FINAL + AUTO-ON
+-- SECTION 15/15 : AUTO-ON FITUR + PRINT FINAL
 -- =========================================================
+-- NOTE: Aimbot Senter logic ada di Section 4 (cuma 1 handler)
 
--- ============================================
--- 15.1 AIMBOT SENTER - INSTANT LOCK FINAL
--- ============================================
-AimbotSenter.HoldingSenter = false
-AimbotSenter.CurrentTarget = nil
-AimbotSenter._Hooked = {}
-
-function ScanSenterButtonsV15()
-    local buttons = {}
-    for _, obj in pairs(PG:GetDescendants()) do
-        if obj:IsA("GuiObject") and obj.Visible then
-            local n = string.lower(obj.Name)
-            if n:find("dagger") or n:find("flashlight") or n:find("senter")
-               or n:find("light") or n:find("torch") or n:find("flash")
-               or n:find("knife") or n:find("blade") then
-                table.insert(buttons, obj)
-            end
-        end
-    end
-    return buttons
-end
-
-function HookSenterV15()
-    local buttons = ScanSenterButtonsV15()
-    print("[SENTER] Ketemu " .. #buttons .. " tombol")
-    for _, obj in ipairs(buttons) do
-        if AimbotSenter._Hooked[obj] then continue end
-        AimbotSenter._Hooked[obj] = true
-        print("[SENTER] Hook: " .. obj:GetFullName())
-
-        obj.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1
-               or input.UserInputType == Enum.UserInputType.Touch then
-                AimbotSenter.HoldingSenter = true
-                print("[SENTER] HOLD = INSTANT LOCK")
-            end
-        end)
-
-        obj.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1
-               or input.UserInputType == Enum.UserInputType.Touch then
-                AimbotSenter.HoldingSenter = false
-                AimbotSenter.CurrentTarget = nil
-                print("[SENTER] RELEASE = BEBAS")
-            end
-        end)
-
-        obj.MouseLeave:Connect(function()
-            AimbotSenter.HoldingSenter = false
-            AimbotSenter.CurrentTarget = nil
-        end)
-    end
-end
-
--- FIX: helper cek killer (fallback kalau Team gak valid)
-function AimbotSenter_IsKillerV15(p)
-    if not p or not p.Character then return false end
-    if p.Team and p.Team.Name == "Killer" then return true end
-    local charName = string.lower(p.Character.Name)
-    local dispName = string.lower(p.DisplayName or "")
-    local killerTags = {"killer", "hidden", "abyss", "walker", "masked", "jacket", "617", "jason", "hunter"}
-    for _, tag in ipairs(killerTags) do
-        if charName:find(tag) or dispName:find(tag) then return true end
-    end
-    return false
-end
-
-task.spawn(function()
-    while task.wait(0.01) do
-        if not AimbotSenter.Enabled then
-            if AimbotLaserGui then
-                for _, line in pairs(AimbotLaserLines) do
-                    if line then line:Remove() end
-                end
-                AimbotLaserLines = {}
-            end
-            continue
-        end
-
-        if not AimbotSenter.HoldingSenter then
-            AimbotSenter.CurrentTarget = nil
-            if AimbotLaserGui then
-                for _, line in pairs(AimbotLaserLines) do
-                    if line then line:Remove() end
-                end
-                AimbotLaserLines = {}
-            end
-            continue
-        end
-
-        local myRoot = getRoot()
-        if not myRoot then continue end
-
-        local closest = nil
-        local shortest = math.huge
-
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LP and p.Character then
-                if AimbotSenter_IsKillerV15(p) then
-                    local hum = p.Character:FindFirstChildOfClass("Humanoid")
-                    local targetPart = p.Character:FindFirstChild(AimbotSenter.LockPart or "Head")
-                    if hum and hum.Health > 0 and targetPart then
-                        local dist = (targetPart.Position - myRoot.Position).Magnitude
-                        if dist < shortest then
-                            shortest = dist
-                            closest = targetPart
-                        end
-                    end
-                end
-            end
-        end
-
-        if not closest then
-            AimbotSenter.CurrentTarget = nil
-            if AimbotLaserGui then
-                for _, line in pairs(AimbotLaserLines) do
-                    if line then line:Remove() end
-                end
-                AimbotLaserLines = {}
-            end
-            continue
-        end
-
-        AimbotSenter.CurrentTarget = closest
-        -- INSTANT LOCK (langsung set CFrame, gak pake Lerp)
-        local cam = workspace.CurrentCamera
-        if cam then
-            local camPos = cam.CFrame.Position
-            local targetPos = closest.Position
-            cam.CFrame = CFrame.new(camPos, targetPos)
-        end
-
-        if AimbotSenter.ShowLaser then
-            local cam2 = workspace.CurrentCamera
-            local screenPoint, onScreen = cam2:WorldToViewportPoint(closest.Position)
-            if onScreen then
-                if AimbotLaserGui then
-                    for _, line in pairs(AimbotLaserLines) do
-                        if line then line:Remove() end
-                    end
-                    AimbotLaserLines = {}
-                end
-                local centerX = cam2.ViewportSize.X / 2
-                local centerY = cam2.ViewportSize.Y / 2
-                local line = Drawing.new("Line")
-                line.Visible = true
-                line.From = Vector2.new(centerX, centerY)
-                line.To = Vector2.new(screenPoint.X, screenPoint.Y)
-                line.Color = AimbotSenter.LaserColor or Color3.fromRGB(255, 210, 80)
-                line.Thickness = 2
-                line.Transparency = 0.5
-                table.insert(AimbotLaserLines, line)
-            end
-        end
-    end
-end)
-
-task.spawn(function()
-    while task.wait(2) do
-        if AimbotSenter.Enabled then
-            pcall(HookSenterV15)
-        end
-    end
-end)
-
-print("✅ [15/15] Aimbot Senter: HOLD = INSTANT LOCK ke Head Killer")
-
--- ============================================
--- 15.2 AUTO-ON FITUR PAS EXECUTE
--- ============================================
 task.spawn(function()
     task.wait(3)
 
@@ -6812,8 +6757,8 @@ print("✅ [15/15] Auto-ON Fitur Loaded")
 print("")
 print("═══════════════════════════════════════════")
 print("  ✅ [15/15] SECTION 15 LOADED (ONE W)")
-print("  🔦 Aimbot Senter: HOLD = INSTANT LOCK")
 print("  ⚡ Auto-ON: ESP + Korblox + Headless")
+print("  🔦 Aimbot Senter: Section 4 (1 handler)")
 print("═══════════════════════════════════════════")
 print("")
 print("╔══════════════════════════════════════════╗")
@@ -6835,5 +6780,12 @@ print("║      7. Visual     (HD, Korblox, dll)    ║")
 print("║      8. Hitbox     (Text Angka)          ║")
 print("║      9. Grafik Ultra (Soft Cinematic)    ║")
 print("║      10. Aimbot    (Aimlock Killer)      ║")
+print("╠══════════════════════════════════════════╣")
+print("║   🔦 Aimbot Senter: HOLD = LOCK          ║")
+print("║      LEPAS = BEBAS (FIXED, GAK NYANGKUT) ║")
+print("║   🎨 Tombol W pakai gambar               ║")
+print("║   💰 Theme: GOLD PREMIUM                 ║")
 print("╚══════════════════════════════════════════╝")
 print("")
+print("✅ SEMUA SECTION 1-15 SELESAI!")
+print("🎯 Klik tombol W atau RightShift untuk buka menu")
